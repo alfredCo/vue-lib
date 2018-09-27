@@ -1,0 +1,136 @@
+<div class="page-inner">
+    <div class="table-action">
+        <button type="button" data-toggle="modal" ng-click="createConfig()" class="btn btn-primary">
+            <i class="icon-aw-add-to2"></i>{{"cn.configmanage.createConfig"|translate}}</button>
+        <button type="button" data-toggle="modal" ng-disabled="!canEditConfig" ng-click="editConfig()" class="btn btn-info">
+            <i class="icon-aw-modify"></i>{{"cn.action.edit"|translate}}</button>
+        <button type="button" data-toggle="modal" ng-disabled="!canDeleteConfig" ng-click="deleteConfig()" class="btn btn-info">
+            <i class="icon-aw-delete"></i>{{"cn.action.del"|translate}}</button>
+        <div class="pull-right">
+            <div class="search-box">
+                <form name="searchForm" novalidate ng-keyup="applyGlobalSearch()">
+                    <button class="btn" type="submit" ng-disabled="searchForm.$invalid">
+                        <i class="icon-aw-search"></i>
+                    </button>
+                    <input type="text" class="form-control" autocomplete="off" maxlength="128" name="searchTerm" ng-model="globalSearchTerm"
+                        placeholder="{{'cn.hostmanage.placeholderSearch'|translate}}" />
+                </form>
+            </div>
+            <button class="btn btn-renovat" ng-click="refresh()">
+                <i class="icon-aw-refresh"></i>
+            </button>
+        </div>
+    </div>
+    <div class="table-content">
+        <empty-tip empty-type="loadData"></empty-tip>
+        <table ng-table="tableParams" class="table" template-pagination="/tmpl/ngtablepagination.html">
+            <colgroup>
+                <col width="4%">
+                <col width="24%">
+                <col width="24%">
+                <col width="24%">
+                <col width="24%">
+            </colgroup>
+            <tr ng-repeat="item in $data">
+                <td header="'headerCheckbox.html'">
+                    <label class="checkbox">
+                        <input type="checkbox" ng-model="checkboxes.items[item.uuid]" />
+                        <i class="iconfont"></i>
+                    </label>
+                </td>
+                <td data-title="'cn.configmanage.configName'|translate" sortable="'name'">
+                    <span>{{item.name}}</span>
+                </td>
+                <td data-title="'cn.configmanage.cpuNumber'|translate" sortable="'cpu'">
+                    <span>{{item.cpu}}</span>
+                </td>
+                <td data-title="'cn.configmanage.memory'|translate" sortable="'memory'">
+                    <span>{{item.memory}}</span>
+                </td>
+                <td data-title="'cn.configmanage.gpuNumber'|translate" sortable="'gpu'">
+                    <span>{{item.gpu}}</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+<script type="text/ng-template" id="headerCheckbox.html">
+    <label class="checkbox">
+        <input type="checkbox" ng-model="checkboxes.checked" class="select-all" value="" />
+        <i class="iconfont"></i>
+    </label>
+</script>
+<script type="text/ng-template" id="createConfig.html">
+    <div class="modal-common">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="$dismiss()">×</button>
+            <h3 class="modal-title  clearfix">{{title}}</h3>
+        </div>
+        <div class="modal-body">
+            <form name="createmodelForm" class="model-form" novalidate>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>配置名称：</label>
+                    <div class="controls" ng-if="pageType == 'create'">
+                        <input class="form-controls" name="configName" ng-model="modelForm.name" placeholder="请输入配置名称" ng-pattern="/^[a-z][-a-z0-9]*[a-z]$/"
+                            ng-maxlength="32" required ng-change="choiceName(modelForm.name)"/>
+                        <div class="error" ng-messages="(createmodelFormValid ||createmodelForm.configName.$dirty) && createmodelForm.configName.$error">
+                            <span class="error" ng-message="pattern">只能输入小写字母、数字和横线，且首尾为小写字母</span>
+                            <span class="error" ng-message="required">必填项</span>
+                            <span class="error" ng-message="maxlength">最大长度为32位</span>
+                        </div>
+                        <div class="error" ng-if="hadSameName">
+                            <span class="error">{{'cn.configmanage.checkInfo.sameName'|translate}}</span>
+                        </div>
+                    </div>
+                    <div class="controls" ng-if="pageType == 'modify'">
+                        <span class="unalterable-name">{{modelForm.name}}</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>CPU核（个）：</label>
+                    <div class="controls">
+                        <input class="form-controls" name="cpuNumber" ng-model="modelForm.cpu" placeholder="请输入CPU核个数" ng-pattern="/^[1-9]\d*$/"
+                            ng-maxlength="4" required/>
+                        <div class="error" ng-messages="(createmodelFormValid ||createmodelForm.cpuNumber.$dirty) && createmodelForm.cpuNumber.$error">
+                            <span class="error" ng-message="pattern">只能输入正整数</span>
+                            <span class="error" ng-message="required">必填项</span>
+                            <span class="error" ng-message="maxlength">最大长度为4位</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>内存（GB）：</label>
+                    <div class="controls">
+                        <input class="form-controls" name="memory" ng-model="modelForm.memory" placeholder="请输入内存大小" ng-pattern="/^[1-9]\d*$/"
+                            ng-maxlength="4" required/>
+                        <div class="error" ng-messages="(createmodelFormValid ||createmodelForm.memory.$dirty) && createmodelForm.memory.$error">
+                            <span class="error" ng-message="pattern">只能输入正整数</span>
+                            <span class="error" ng-message="required">必填项</span>
+                            <span class="error" ng-message="maxlength">最大长度为4位</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>GPU（个）：</label>
+                    <div class="controls">
+                        <input class="form-controls" name="gpuNumber" ng-model="modelForm.gpu" placeholder="请输入GPU个数" ng-pattern="/(^[1-9]\d*$)|(^0$)/"
+                            ng-maxlength="4" required/>
+                        <div class="error" ng-messages="(createmodelFormValid ||createmodelForm.gpuNumber.$dirty) && createmodelForm.gpuNumber.$error">
+                            <span class="error" ng-message="pattern">只能输入非负整数</span>
+                            <span class="error" ng-message="required">必填项</span>
+                            <span class="error" ng-message="maxlength">最大长度为4位</span>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-info" ng-click="confirmCreate(createmodelForm)">确定</button>
+            <button type="button" class="btn btn-default" ng-click="$dismiss()">取消</button>
+        </div>
+    </div>
+</script>

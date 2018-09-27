@@ -1,0 +1,180 @@
+<div class="page-inner cluster-view">
+    <div class="box permit">
+        <div class="col-6">
+            <div class="inner">
+               <h5>训练集群数</h5>
+            <div class="cluster-item resView-info-box">
+                <div class="pieChart-box">
+                    <pie-chart data="clusterData"></pie-chart>
+                </div>
+                <div class="res-info-box">
+                    <dl class="dl-horizontal">
+                        <dt>总数量：</dt>
+                        <dd>
+                            <span class="total">{{clusterData.total}}</span>
+                        </dd>
+                    </dl>
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <i style="background-color:#1abc9c"></i>运行中：</dt>
+                        <dd>
+                            <span class="num" style="color:#1abc9c">{{clusterData.clusterData.running}}</span>
+                        </dd>
+                    </dl>
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <i style="background-color:#4e80f5"></i>调度中：</dt>
+                        <dd>
+                            <span style="color:#4e80f5">{{clusterData.clusterData.scheduleing}}</span>
+                        </dd>
+                    </dl>
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <i style="background-color:#f39c12"></i>已终止：</dt>
+                        <dd>
+                            <span style="color:#f39c12">{{clusterData.clusterData.finish}}</span>
+                        </dd>
+                    </dl>
+
+                </div>
+                <div class="res-info-box">
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <i style="background-color:#e74c3c"></i>错误：</dt>
+                        <dd>
+                            <span class="num" style="color:#e74c3c">{{clusterData.clusterData.error}}</span>
+                        </dd>
+                    </dl>
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <i style="background-color:#b6a2dd"></i>创建中：</dt>
+                        <dd>
+                            <span class="num" style="color:#b6a2dd">{{clusterData.clusterData.createing}}</span>
+                        </dd>
+                    </dl>
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <i style="background-color:#666666"></i>删除中：</dt>
+                        <dd>
+                            <span class="num" style="color:#666666">{{clusterData.clusterData.deleting}}</span>
+                        </dd>
+                    </dl>
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <i style="background-color:#4a6583"></i>终止中：</dt>
+                        <dd>
+                            <span class="num" style="color:#4a6583">{{clusterData.clusterData.stoping}}</span>
+                        </dd>
+                    </dl>
+                </div>
+            </div> 
+            </div>
+            
+        </div>
+        <div class="col-6">
+            <div class="inner">
+               <h5>托管模型数</h5>
+            <div class="cluster-item resView-info-box">
+                <div class="pieChart-box">
+                    <pie-chart data="modelData"></pie-chart>
+                </div>
+                <div class="res-info-box">
+                    <dl class="dl-horizontal">
+                        <dt>总数量：</dt>
+                        <dd>
+                            <span class="total">{{modelData.total}}</span>
+                        </dd>
+                    </dl>
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <i style="background-color:#1abc9c"></i>运行中：</dt>
+                        <dd>
+                            <span class="num" style="color:#1abc9c">{{modelData.modelData.running}}</span>
+                        </dd>
+                    </dl>
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <i style="background-color:#4e80f5"></i>调度中：</dt>
+                        <dd>
+                            <span class="num" style="color:#4e80f5">{{modelData.modelData.scheduleing}}</span>
+                        </dd>
+                    </dl>
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <i style="background-color:#f39c12"></i>禁用：</dt>
+                        <dd>
+                            <span style="color:#f39c12">{{modelData.modelData.disable}}</span>
+                        </dd>
+                    </dl>
+
+                </div>
+                <div class="res-info-box">
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <i style="background-color:#e74c3c"></i>错误：</dt>
+                        <dd>
+                            <span style="color:#e74c3c">{{modelData.modelData.error}}</span>
+                        </dd>
+                    </dl>
+
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <i style="background-color:#b6a2dd"></i>创建中：</dt>
+                        <dd>
+                            <span class="num" style="color:#b6a2dd">{{modelData.modelData.createing}}</span>
+                        </dd>
+                    </dl>
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <i style="background-color:#666666"></i>删除中：</dt>
+                        <dd>
+                            <span class="num" style="color:#666666">{{modelData.modelData.deleting}}</span>
+                        </dd>
+                    </dl>
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <i style="background-color:#4a6583"></i>禁用中：</dt>
+                        <dd>
+                            <span class="num" style="color:#4a6583">{{modelData.modelData.disabling}}</span>
+                        </dd>
+                    </dl>
+                </div>
+            </div> 
+            </div>
+        </div>
+    </div>
+    <div class="box no-border-box">
+        <div class="col-12">
+            <div class="inner">
+                <h5>资源使用率</h5>
+            <div class="chart-wrap">
+                <div class="control-group">
+                    <label class="control-label">CPU核</label>
+                    <div class="controls">
+                        <div id="userQuota1" quota-bar bardata="quotaData.cpu"></div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">内存</label>
+                    <div class="controls">
+                        <div id="userQuota2" quota-bar bardata="quotaData.memory"></div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">存储卷</label>
+                    <div class="controls">
+                        <div id="userQuota3" quota-bar bardata="quotaData.storage"></div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">GPU</label>
+                    <div class="controls">
+                        <div id="userQuota4" quota-bar bardata="quotaData.gpu"></div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,201 @@
+<div class="page-inner">
+    <div class="table-action">
+        <div class="pull-left" ng-show="userSwitchSrv.storagevolume">
+            <button type="button" ng-click="create()" class="btn btn-primary">
+                <i class="icon-aw-add-to2"></i>{{"cn.storageVolume.createStorageVolume"|translate}}</button>
+            <button type="button" ng-disabled="!canDel" ng-click="delete()" class="btn btn-warning">
+                <i class="icon-aw-delete"></i>{{"cn.action.del"|translate}}</button>
+            <button type="button" ng-disabled="!canOpen" ng-click="openVal()" class="btn btn-warning">
+                <i class="icon-aw-jqm"></i>文件管理</button>
+        </div>
+        <div class="pull-right">
+            <div class="search-box">
+                <form name="searchForm" novalidate ng-keyup="applyGlobalSearch()">
+                    <button class="btn" type="submit" ng-disabled="searchForm.$invalid">
+                        <i class="icon-aw-search"></i>
+                    </button>
+                    <input type="text" class="form-control" autocomplete="off" maxlength="128" name="searchTerm" ng-model="globalSearchTerm"
+                        placeholder='{{"cn.action.search"|translate}}' />
+                </form>
+            </div>
+            <button class="btn btn-renovat" ng-click="refresh()">
+                <i class="icon-aw-refresh"></i>
+            </button>
+            <setting title-data="storageVolumeTitleData" site-title="storageVolumeName" table-data="storageVolumeListData" search-tearm="storageVolumeSearchTerm(obj)" ng-if="!userSwitchSrv.storagevolume"></setting>
+        </div>
+    </div>
+    <div class="table-content">
+        <empty-tip empty-type="loadData"></empty-tip>
+        <table ng-table="tableParams" class="table" template-pagination="/tmpl/ngtablepagination.html" show-filter="false">
+            <colgroup ng-if="!userSwitchSrv.storagevolume">
+                <col width="10%">
+                <col width="10%">
+                <col width="12%">
+                <col width="12%">
+                <col width="20%">
+                <col width="12%">
+                <col width="12%">
+                <col width="12%">
+            </colgroup>
+            <colgroup ng-if="userSwitchSrv.storagevolume">
+                <col width="4%">
+                <col width="12%">
+                <col width="12%">
+                <col width="12%">
+                <col width="20%">
+                <col width="14%">
+                <col width="14%">
+                <col width="12%">
+            </colgroup>
+            <tr ng-repeat="item in $data">
+                <td header="'headerCheckbox.html'" ng-if="userSwitchSrv.storagevolume">
+                    <label class="checkbox">
+                        <input type="checkbox" ng-model="checkboxes.items[item.id]" />
+                        <i class="iconfont"></i>
+                    </label>
+                </td>
+                <td data-title='"cn.storageVolume.storageVolumeName"|translate' ng-if="storageVolumeTitleData[0].value" sortable="'volumename'">
+                    {{item.volumename}}
+                </td>
+                <td data-title='"cn.storageVolume.user"|translate' ng-if="!userSwitchSrv.storagevolume && storageVolumeTitleData[1].value" sortable="'namespace'">
+                    {{item.namespace}}
+                </td>
+                <td data-title='"cn.storageVolume.size"|translate' ng-if="storageVolumeTitleData[2].value" sortable="'volumesize'">
+                    {{item.volumesize}}
+                </td>
+                <td data-title='"cn.storageVolume.type"|translate' ng-if="storageVolumeTitleData[3].value" sortable="'type'">
+                    {{item.type}}
+                </td>
+                <td data-title='"cn.storageVolume.trainingCluster"|translate' ng-if="storageVolumeTitleData[4].value" sortable="'relatedtask'">
+                    {{item.relatedtask}}
+                </td>
+                <td data-title='"cn.storageVolume.depositModel"|translate' ng-if="storageVolumeTitleData[5].value" sortable="'relatedmodel'">
+                    {{item.relatedmodel}}
+                </td>
+                <td data-title='"cn.storageVolume.createTime"|translate' ng-if="storageVolumeTitleData[6].value" sortable="'createTime_ori'">
+                    {{item.createTime_ori}}
+                </td>
+                <td data-title='"cn.storageVolume.option"|translate'>
+                    <a href="#/storage/storagevolume?id={{item.uuid}}&namespace={{item.namespace}}&name={{item.volumename}}">{{"cn.storageVolume.checkMonitor"|translate}}</a>
+                </td>
+            </tr>
+        </table>
+        <div ng-controller="detailCtrl">
+            <pane class="detail-body" animation="animation">
+                <div class="tab-content monitor-view">
+                    <div class="detail-row">
+                        <div class="detail-title">
+                            <a class="an-close" ng-href="/#/storage/storagevolume">
+                                <i class="icon-aw-mail-reply"></i>
+                            </a>
+                            <span>存储卷{{DetailInfo.name}}监控信息</span>
+                        </div>
+                    </div>
+                    <div class="detail-info">
+                        <div class="monitor-btn-group">
+                            <ul class="time-btn-list">
+                                <li ng-class="{'active':volActiveFlag == '1h'}" ng-click="changeVolInfo('1h','300')">最近1小时</li>
+                                <li ng-class="{'active':volActiveFlag == '12h'}" ng-click="changeVolInfo('12h','3600')">最近12小时</li>
+                                <li ng-class="{'active':volActiveFlag == '1d'}" ng-click="changeVolInfo('1d','7200')">最近1天</li>
+                                <li ng-class="{'active':volActiveFlag == '7d'}" ng-click="changeVolInfo('7d','86400')">最近1周</li>
+                            </ul>
+                        </div>
+                        <div class="box layout-grid areaChart">
+                            <div ng-repeat="item in volInfo">
+                                <div class="inner">
+                                    <div class="no-data" ng-if="!item.showNoData">暂无数据</div>                                    
+                                    <monitor-area-stack chart-title="item.title" data="item.data"></monitor-area-stack>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </pane>
+        </div>
+    </div>
+</div>
+<script type="text/ng-template" id="headerCheckbox.html">
+    <label class="checkbox">
+        <input type="checkbox" ng-model="checkboxes.checked" class="select-all" value="" />
+        <i class="iconfont"></i>
+    </label>
+</script>
+<script type="text/ng-template" id="createStorageVolume.html">
+    <div class="modal-common">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" ng-click="$dismiss()">×</button>
+            <h3 class="modal-title">{{"cn.storageVolume.createStorageVolume"|translate}}</h3>
+        </div>
+        <div class="modal-body">
+            <form name="createStorageVolume" novalidate>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>{{"cn.storageVolume.storageVolumeName"|translate}}：</label>
+                    <div class="controls">
+                        <input type="text" class="form-controls" name="name" ng-model="formData.name" placeholder='{{"cn.usermanage.placeholder.userName"|translate}}'
+                            ng-pattern="/^[a-z][-a-z0-9]*[a-z]$/" ng-minlength="6" ng-maxlength="32" required ng-change="choiceName(formData.name)"/>
+                        <div class="error" ng-messages="(submitValid ||createStorageVolume.name.$dirty) && createStorageVolume.name.$error">
+                            <span class="error" ng-message="required">{{'cn.usermanage.checkInfo.required'|translate}}</span>
+                            <span class="error" ng-message="pattern">{{'cn.storageVolume.formtips.name'|translate}}</span>
+                            <span class="error" ng-message="maxlength">{{'cn.errors.maxlength32'|translate}}</span>
+                            <span class="error" ng-message="minlength">{{'cn.storageVolume.formtips.minlength'|translate}}</span>
+                        </div>
+                        <div class="error" ng-if="hadSameName">
+                            <span class="error">{{'cn.storageVolume.checkInfo.sameName'|translate}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>{{"cn.storageVolume.size"|translate}}：</label>
+                    <div class="controls">
+                        <input type="text" class="form-controls" name="size" ng-model="formData.size" ng-maxlength="16" placeholder='{{
+                            "cn.usermanage.placeholder.enter"|translate}}' ng-pattern="/^([1-9][0-9]*)$/" required />
+                        <div class="error" ng-messages="(submitValid ||createStorageVolume.size.$dirty) && createStorageVolume.size.$error">
+                            <span class="error" ng-message="required">{{'cn.usermanage.checkInfo.required'|translate}}</span>
+                            <span class="error" ng-message="pattern">{{'cn.errors.limit_1'|translate}}</span>
+                            <span class="error" ng-message="maxlength">{{'cn.errors.maxlength16'|translate}}</span>
+                        </div>
+                        <div class="error" ng-if="overQuota">
+                            {{"cn.errors.overQuota"|translate}}
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>{{"cn.storageVolume.type"|translate}}：</label>
+                    <div class="controls time-checkbox radio">
+                        <label class="volume-type-radio">
+                            <input type="radio" name="volumeType" ng-model="formData.type" value="glusterfs">
+                            <i></i>
+                            <span>GlusterFS</span>
+                        </label>
+                        <label class="volume-type-radio">
+                            <input type="radio" name="volumeType" ng-model="formData.type" value="cephfs">
+                            <i></i>
+                            <span>CephFS</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label font-weight-700">
+                            {{"cn.storageVolume.canUseRes"|translate}}：</label>
+                    <div class="controls">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label"></br></label>
+                    <div class="controls">
+                        <div class="user-bar-group bar-group">
+                            <div id="setting" quota-bar bardata="canUse_data"></div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-info" type="button" ng-click="confirm(createStorageVolume)" ng-disabled="overQuota">{{"cn.action.ok"|translate}}</button>
+            <button class="btn btn-default" type="button" ng-click="$dismiss()">{{"cn.action.cancel"|translate}}</button>
+        </div>
+    </div>
+</script>

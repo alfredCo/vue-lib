@@ -1,0 +1,240 @@
+<div class="page-inner">
+  <div class="table-action">
+    <button type="button" data-toggle="modal" ng-click="createImage()" class="btn btn-primary">
+      <i class="icon-aw-add-to2"></i>{{"cn.imagemanage.createImage"|translate}}</button>
+    <!-- <button type="button" data-toggle="modal" ng-disabled="!canDeleteType" ng-click="deletetype()" class="btn btn-info">
+      <i class="icon-aw-delete"></i>{{"cn.action.modify"|translate}}</button> -->
+    <button type="button" data-toggle="modal" ng-disabled="!canDeleteImage" ng-click="deleteImage()" class="btn btn-info">
+      <i class="icon-aw-delete"></i>{{"cn.action.del"|translate}}</button>
+    <div class="pull-right">
+      <div class="search-box">
+        <form name="searchForm" novalidate ng-keyup="applyGlobalSearch()">
+          <button class="btn" type="submit" ng-disabled="searchForm.$invalid">
+            <i class="icon-aw-search"></i>
+          </button>
+            <input type="text" class="form-control" autocomplete="off" maxlength="128" name="searchTerm" ng-model="globalSearchTerm"/>
+        </form>
+      </div>
+      <button class="btn btn-renovat btn-search" ng-click="refresh()">
+        <i class="icon-aw-refresh"></i>
+      </button>
+      <setting title-data="imageManageTitleData" site-title="imageManageName" table-data="imageManageListData" search-tearm="imageManageSearchTerm(obj)"></setting>      
+    </div>
+  </div>
+  <div class="table-content">
+    <empty-tip empty-type="loadData"></empty-tip>
+    <table ng-table="tableParams" class="table" template-pagination="/tmpl/ngtablepagination.html" >
+      <colgroup>
+        <col width="4%">
+        <col width="12%">
+        <col width="12%">
+        <col width="10%">
+        <col width="26%">
+        <col width="10%">
+        <col width="13%">
+        <col width="13%">
+      </colgroup>
+      <tr ng-repeat="item in $data">
+        <td header="'headerCheckbox.html'">
+          <label class="checkbox">
+            <input type="checkbox" ng-model="checkboxes.items[item.uuid]" />
+            <i class="iconfont"></i>
+          </label>
+        </td>
+        <td data-title="dataTitles.imageName" sortable="'name'" ng-if="imageManageTitleData[0].value">{{item.name}}</td>
+        <td data-title="dataTitles.engine" sortable="'engine'" ng-if="imageManageTitleData[1].value">{{item.engine}}</td>
+        <td data-title="dataTitles.version" sortable="'version'" ng-if="imageManageTitleData[2].value">{{item.version}}</td>
+        <td data-title="dataTitles.address" sortable="'address'" ng-if="imageManageTitleData[3].value"><span class="word-break">{{item.address}}</span></td>
+        <td data-title="dataTitles.issupportcluster" sortable="'issupportcluster_ori'" ng-if="imageManageTitleData[4].value">
+            <span ng-class="{
+                'bg-green':(item.issupportcluster=='1'),
+                'bg-orange':(item.issupportcluster!='1'),
+                }">{{item.issupportcluster_ori}}
+            </span>
+        </td>
+        <td data-title="dataTitles.adaptationcpu" sortable="'adaptationcpu'" ng-if="imageManageTitleData[5].value">{{item.adaptationcpu}}</td>
+        <td data-title="dataTitles.adaptationgpu" sortable="'adaptationgpu'" ng-if="imageManageTitleData[6].value">{{item.adaptationgpu}}</td>
+      </tr>
+    </table>
+  </div>
+</div>
+<script type="text/ng-template" id="headerCheckbox.html">
+  <label class="checkbox">
+    <input type="checkbox" ng-model="checkboxes.checked" class="select-all" value="" />
+    <i class="iconfont"></i>
+  </label>
+</script>
+<script type="text/ng-template" id="createImage.html">
+  <div class="modal-common">
+    <div class="modal-header">
+      <button type="button" class="close" ng-click="$dismiss()">×</button>
+      <h3 class="modal-title clearfix">新建镜像</h3>
+    </div>
+    <div class="modal-body">
+      <form name="createmodelForm" class="model-form" novalidate>
+        <div class="control-group">
+          <label class="control-label">
+            <span class="red">*</span>镜像名称：</label>
+          <div class="controls">
+            <input class="form-controls" name="imageName" ng-model="modelForm.imageName" placeholder="请输入镜像名称" ng-pattern="/^(\w|[\u4E00-\u9FA5]|\.|\_|\-)*$/"
+              ng-maxlength="32" required ng-change="choiceName(modelForm.imageName)"/>
+            <div class="error" ng-messages="(createmodelFormValid ||createmodelForm.imageName.$dirty) && createmodelForm.imageName.$error">
+              <span class="error" ng-message="pattern">只能输入字母、数字、中文、小数点、下划线和横线</span>
+              <span class="error" ng-message="required">{{'cn.errors.required'|translate}}</span>
+              <span class="error" ng-message="maxlength">{{'cn.errors.maxlength'|translate}}</span>
+            </div>
+            <div class="error" ng-if="hadSameName">
+                <span class="error">{{'cn.imagemanage.checkInfo.sameName'|translate}}</span>
+            </div>
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">
+            <span class="red">*</span>框架选择：</label>
+          <div class="controls">
+            <ui-select ng-model="frameworkModel.selected" ng-change="changeFramework(frameworkModel.selected)" name="framework" placeholder="请输入引擎名称" required>
+              <ui-select-match placeholder="请选择类型">
+                  {{$select.selected.name}}
+              </ui-select-match>
+              <ui-select-choices repeat="item in frameworkList">
+                  <div ng-bind-html="item.name | highlight: $select.search"></div>
+              </ui-select-choices>
+            </ui-select>
+            <div class="error" ng-messages="(createmodelFormValid ||createmodelForm.framework.$dirty) && createmodelForm.framework.$error">
+              <span class="error" ng-message="required">{{'cn.errors.required'|translate}}</span>
+            </div>
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">
+            <span class="red">*</span>版本号：</label>
+          <!-- <div class="controls">
+            <input class="form-controls" name="version" ng-model="modelForm.version" placeholder="请输入版本号" ng-pattern="/^([0-9]+[\.]?)*[0-9]$/"
+              ng-maxlength="32" required/>
+            <div class="error" ng-messages="(createmodelFormValid ||createmodelForm.version.$dirty) && createmodelForm.version.$error">
+              <span class="error" ng-message="pattern">只能输入数字和小数点，且首尾为数字</span>
+              <span class="error" ng-message="required">必填项</span>
+              <span class="error" ng-message="maxlength">最大长度为32位</span>
+            </div>
+          </div> -->
+          <div class="controls">
+            <ui-select ng-model="versionModel.selected" name="version" required>
+              <ui-select-match placeholder="请选择版本">
+                  {{$select.selected.version}}
+              </ui-select-match>
+              <ui-select-choices repeat="item in versionList">
+                  <div ng-bind-html="item.version | highlight: $select.search"></div>
+              </ui-select-choices>
+            </ui-select>
+            <div class="error" ng-messages="(createmodelFormValid ||createmodelForm.version.$dirty) && createmodelForm.version.$error">
+              <span class="error" ng-message="required">{{'cn.errors.required'|translate}}</span>
+            </div>
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">
+            <span class="red">*</span>路径：</label>
+          <div class="controls">
+            <input class="form-controls" name="path" ng-model="modelForm.path" placeholder="请输入路径" ng-maxlength="255"
+               required/>
+            <div class="error" ng-messages="(createmodelFormValid ||createmodelForm.path.$dirty) && createmodelForm.path.$error">
+              <span class="error" ng-message="required">{{'cn.errors.required'|translate}}</span>
+              <span class="error" ng-message="maxlength">{{'cn.errors.maxlength_255'|translate}}</span>
+            </div>
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">
+            <span class="red">*</span>类型：</label>
+          <div class="controls">
+            <div class="image-type-checkbox radio">
+              <label>
+                <input type="radio" name="type" ng-model="modelForm.type" ng-checked="true" value="cpu"/>
+                <i></i>
+                <span>CPU</span>
+                </label>
+              <label>
+                <input type="radio" name="type" ng-model="modelForm.type" value="gpu"/>
+                <i></i>
+                <span>GPU</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <!-- <div class="control-group" ng-if="modelForm.type == 'cpu'">
+          <label class="control-label">
+            <span class="red">*</span>CPU适配型号：</label>
+          <div class="controls">
+            <input class="form-controls" name="cpuType" ng-model="modelForm.cpuType" placeholder="请输入CPU适配型号" ng-pattern="/^[a-z][-a-z0-9]*[a-z]$/"
+              ng-maxlength="32" required/>
+            <div class="error" ng-messages="(createmodelFormValid ||createmodelForm.cpuType.$dirty) && createmodelForm.cpuType.$error">
+              <span class="error" ng-message="pattern">只能输入小写字母、数字和横线，且首尾为小写字母</span>
+              <span class="error" ng-message="required">必填项</span>
+              <span class="error" ng-message="maxlength">最大长度为32位</span>
+            </div>
+          </div>
+        </div>
+        <div class="control-group" ng-if="modelForm.type == 'gpu'">
+          <label class="control-label">
+            <span class="red">*</span>GPU适配型号：</label>
+          <div class="controls">
+            <input class="form-controls" name="gpuType" ng-model="modelForm.gpuType" placeholder="请输入GPU适配型号" ng-pattern="/^[a-z][-a-z0-9]*[a-z]$/"
+              ng-maxlength="32" required/>
+            <div class="error" ng-messages="(createmodelFormValid ||createmodelForm.gpuType.$dirty) && createmodelForm.gpuType.$error">
+              <span class="error" ng-message="pattern">只能输入小写字母、数字和横线，且首尾为小写字母</span>
+              <span class="error" ng-message="required">必填项</span>
+              <span class="error" ng-message="maxlength">最大长度为32位</span>
+            </div>
+          </div>
+        </div> -->
+        <div class="control-group" ng-if="modelForm.type == 'cpu'">
+          <label class="control-label">
+            <span class="red">*</span>CPU适配型号：</label>
+          <div class="controls">
+            <ui-select ng-model="cpuTypeModel.selected" name="cpuType" placeholder="请选择类型" required>
+              <ui-select-match placeholder="请选择类型">
+                  {{$select.selected.name}}
+              </ui-select-match>
+              <ui-select-choices repeat="item in cpuTypeList">
+                  <div ng-bind-html="item.name | highlight: $select.search"></div>
+              </ui-select-choices>
+            </ui-select>
+            <div class="error" ng-messages="(createmodelFormValid ||createmodelForm.cpuType.$dirty) && createmodelForm.cpuType.$error">
+              <span class="error" ng-message="required">{{'cn.errors.required'|translate}}</span>
+            </div>
+          </div>
+        </div>
+        <div class="control-group" ng-if="modelForm.type == 'gpu'">
+          <label class="control-label">
+            <span class="red">*</span>GPU适配型号：</label>
+          <div class="controls">
+            <ui-select ng-model="gpuTypeModel.selected" name="gpuType" placeholder="请选择类型" required>
+              <ui-select-match placeholder="请选择类型">
+                  {{$select.selected.name}}
+              </ui-select-match>
+              <ui-select-choices repeat="item in gpuTypeList">
+                  <div ng-bind-html="item.name | highlight: $select.search"></div>
+              </ui-select-choices>
+            </ui-select>
+            <div class="error" ng-messages="(createmodelFormValid ||createmodelForm.gpuType.$dirty) && createmodelForm.gpuType.$error">
+              <span class="error" ng-message="required">{{'cn.errors.required'|translate}}</span>
+            </div>
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="image-control-label">是否支持集群：</label>
+          <div class="controls image-type-control">
+            <label class="checkbox">
+              <input type="checkbox" ng-model="modelForm.issupportcluster"/>
+              <i class="icon-aw-square"></i>
+            </label>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-info" ng-click="confirmCreate(createmodelForm)">确定</button>
+      <button type="button" class="btn btn-default" ng-click="$dismiss()">取消</button>
+    </div>
+  </div>
+</script>

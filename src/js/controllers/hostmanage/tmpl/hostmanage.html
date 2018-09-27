@@ -1,0 +1,186 @@
+<div class="page-inner">
+  <div class="table-action">
+    <button type="button" data-toggle="modal" class="btn btn-info" ng-disabled="!canSetLabel" ng-click="setLabel()"><i class="icon-aw-modify"></i>{{"cn.hostmanage.setlabel"|translate}}</button>
+    <div class="pull-right">
+      <div class="status-list">
+        <ui-select ng-model="dataStatusForm.name"  ng-change="choiceDataStatus(dataStatusForm.name)" ng-disabled="canChoiceStatus">
+          <ui-select-match placeholder='{{"cn.hostmanage.statusListplaceholderSearch"|translate}}'>
+            {{$select.selected.name}}
+          </ui-select-match>
+          <ui-select-choices repeat="status in dataStatusList">
+            <div ng-bind-html="status.name | highlight: $select.search"></div>
+          </ui-select-choices>
+        </ui-select>
+      </div>
+      <div class="search-box">
+        <form name="searchForm" novalidate ng-keyup="applyGlobalSearch()">
+          <button class="btn" type="submit" ng-disabled="searchForm.$invalid"><i class="icon-aw-search"></i></button>
+          <input type="text" class="form-control" autocomplete="off" maxlength="128" name="searchTerm" ng-model="globalSearchTerm" placeholder="{{'cn.hostmanage.placeholderSearch'|translate}}" />
+        </form>
+      </div>
+      <button class="btn btn-renovat" ng-click="refresh()"><i class="icon-aw-refresh" ></i></button>
+      <setting title-data="hostManageTitleData" site-title="hostManageName" table-data="hostManageListData" search-tearm="hostManageSearchTerm(obj)"></setting>
+    </div>
+  </div>
+  <div class="table-content">
+    <empty-tip empty-type="loadData"></empty-tip>
+    <table ng-table="tableParams" class="table" template-pagination="/tmpl/ngtablepagination.html">
+      <colgroup>
+        <col width="4%">
+        <col width="16%">
+        <col width="16%">
+        <col width="16%">
+        <col width="16%">
+        <col width="16%">
+        <col width="16%">
+      </colgroup>
+      <tr ng-repeat="item in $data">
+        <td header="'headerCheckbox.html'">
+          <label class="checkbox">
+            <input type="checkbox" ng-model="checkboxes.items[item.id]" />
+            <i class="iconfont"></i>
+          </label>
+        </td>
+        <td data-title="dataTitles.name" sortable="'name'" ng-if="hostManageTitleData[0].value">{{item.name}}</td>
+        <td data-title="dataTitles.IP" sortable="'IP'" ng-if="hostManageTitleData[1].value">{{item.IP}}</td>
+        <td data-title="dataTitles.status" sortable="'healthstatus_ori'" ng-if="hostManageTitleData[2].value">
+          <span ng-class="{'bg-green':item.healthstatus=='True','bg-red':item.healthstatus!='True'}">{{item.healthstatus_ori}}</span>
+        </td>
+        <td data-title="dataTitles.cpucores" sortable="'cpucores'" ng-if="hostManageTitleData[3].value">{{item.cpucores}}</td>
+        <td data-title="dataTitles.memory" sortable="'memory'" ng-if="hostManageTitleData[4].value">{{item.memory}}</td>
+        <td data-title="dataTitles.hostlabel" ng-if="hostManageTitleData[5].value">
+          <span class="host-label-show" ng-repeat="(key, value) in item.labels">{{key}}={{value?value:'""'}}</span>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+<script type="text/ng-template" id="headerCheckbox.html">
+  <label class="checkbox">
+    <input type="checkbox" ng-model="checkboxes.checked" class="select-all" value="" />
+    <i class="iconfont"></i>
+  </label>
+</script>
+<script type="text/ng-template" id="setLabel.html">
+  <div class="modal-common">
+    <div class="modal-header">
+      <button type="button" class="close" ng-click="close()">×</button>
+      <h3 class="modal-title">{{"cn.hostmanage.setlabel"|translate}}</h3>
+    </div>
+    <div class="modal-body host-label-body">
+      <div class="table-action">
+        <button type="button" data-toggle="modal" class="btn btn-info" ng-click="addLabel()"><i class="icon-aw-add-to2"></i>{{"cn.hostmanage.addLabel"|translate}}</button>
+        <button type="button" data-toggle="modal" class="btn btn-warning" ng-disabled="!canDelLable" ng-click="deleteLabel()"><i class="icon-aw-delete"></i>{{"cn.hostmanage.deleteLabel"|translate}}</button>
+      </div>
+      <div class="table-content">
+        <form name="editLabelModelForm" novalidate>
+          <table ng-table="labeltable" class="table host-manage-table">
+            <colgroup>
+              <col width="4%">
+              <col width="48%">
+              <col width="48%">
+            </colgroup>
+            <tr ng-repeat="item in $data">
+              <td header="'labelHeaderCheckbox.html'">
+                <label class="checkbox">
+                  <input type="checkbox" ng-model="labelcheckboxes.items[item.id]" />
+                  <i class="iconfont"></i>
+                </label>
+              </td>
+              <td data-title="'key'" sortable="'key'">
+                <span ng-if="!item.showEditKey">{{item.key}}<i class="icon-aw-modify" ng-show="item.isCanDelete" ng-click="editLabelKey(item)"></i></span>
+                <span ng-if="item.showEditKey"><input class="label-key-input" ng-model="item.key" name="key_{{$index}}" required repeat-verify table-data="tableData" key-name="keyname" ng-pattern="/^[a-z][-a-z0-9]*[a-z]$/" ng-minlength="6" ng-maxlength="32"/><i class="icon-aw-yes" ng-click="confirmKeyEdit(item, editLabelModelForm)"></i><i class="icon-aw-wrong" ng-click="cancelKeyEdit(item)"></i></span>
+                <div class="table-form-error" ng-messages="(editLabelModelFormValid||editLabelModelForm['key_'+$index].$dirty) && editLabelModelForm['key_'+$index].$error">
+                  <span ng-message="pattern">{{"cn.hostmanage.labelTipInfo.pattern"|translate}}</span>
+                  <span ng-message="required">必填项</span>
+                  <span ng-message="maxlength">最大长度为32位</span>
+                  <span ng-message="minlength">最小长度为6位</span>
+                  <span ng-message="nameexist">存在同名的key</span>
+                </div>
+              </td>
+              <td data-title="'value'" sortable="'value'">
+                <span ng-if="!item.showEditValue">{{item.value}}<i class="icon-aw-modify" ng-if="item.key!='gputype'&&item.key!='pooltype'&&item.key!='privatename'" ng-click="editLabelValue(item)"></i></span>
+                <span ng-if="item.showEditValue && item.key != 'gputype' && item.key != 'pooltype'"><input class="label-key-input" ng-model="item.value" name="value_{{$index}}" required ng-pattern="/^[a-z][-a-z0-9]*[a-z]$/" ng-minlength="6" ng-maxlength="32"/><i class="icon-aw-yes" ng-click="confirmValueEdit(item, editLabelModelForm)"></i><i class="icon-aw-wrong" ng-click="cancelValueEdit(item)"></i></span>
+                <span ng-if="item.showEditValue && item.key == 'gputype'">
+                  <ui-select class="label-key-select" ng-model="item.value" name="value_{{$index}}" required>
+                      <ui-select-match placeholder='请选择'>
+                        {{$select.selected}}
+                      </ui-select-match>
+                      <ui-select-choices repeat="item in gputypelist">
+                        <div ng-bind-html="item | highlight: $select.search"></div>
+                      </ui-select-choices>
+                  </ui-select>
+                  <i class="icon-aw-yes" ng-click="confirmValueEdit(item, editLabelModelForm)"></i><i class="icon-aw-wrong" ng-click="cancelValueEdit(item)"></i>
+                </span>
+                <span ng-if="item.showEditValue && item.key == 'pooltype'">
+                  <ui-select class="label-key-select" ng-model="item.value" name="value_{{$index}}" required>
+                    <ui-select-match placeholder='请选择'>
+                      {{$select.selected}}
+                    </ui-select-match>
+                    <ui-select-choices repeat="item in poolTypeList">
+                      <div ng-bind-html="item | highlight: $select.search"></div>
+                    </ui-select-choices>
+                  </ui-select>
+                  <i class="icon-aw-yes" ng-click="confirmValueEdit(item, editLabelModelForm)"></i><i class="icon-aw-wrong" ng-click="cancelValueEdit(item)"></i>
+                </span>
+                <div class="table-form-error" ng-messages="(editLabelModelFormValid||editLabelModelForm['value_'+$index].$dirty) && editLabelModelForm['value_'+$index].$error">
+                  <span ng-message="pattern">{{"cn.hostmanage.labelTipInfo.pattern"|translate}}</span>
+                  <span ng-message="required">必填项</span>
+                  <span ng-message="maxlength">最大长度为32位</span>
+                  <span ng-message="minlength">最小长度为6位</span>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </form>
+      </div>
+    </div>
+  </div>
+</script>
+<script type="text/ng-template" id="labelHeaderCheckbox.html">
+  <label class="checkbox">
+    <input type="checkbox" ng-model="labelcheckboxes.checked" class="select-all" value="" />
+    <i class="iconfont"></i>
+  </label>
+</script>
+<script type="text/ng-template" id="addLabel.html">
+  <div class="modal-common host-add-label">
+    <div class="modal-header">
+      <button type="button" class="close" ng-click="$dismiss()">×</button>
+      <h3 class="modal-title">{{"cn.hostmanage.addLabel"|translate}}</h3>
+    </div>
+    <div class="modal-body">
+      <form name="addLabelModelForm" novalidate>
+        <div class="control-group">
+          <label class="control-label">Key：</label>
+          <div class="controls">
+            <input class="form-control" ng-model="formData.key" name="labelKey" placeholder="请输入key" required ng-pattern="/^[a-z][a-z0-9\-]*[a-z]$/" ng-minlength="6" ng-maxlength="32"/>
+            <div class="error" ng-messages="(addLabelModelFormValid ||addLabelModelForm.labelKey.$dirty) && addLabelModelForm.labelKey.$error">
+              <span class="error" ng-message="pattern">{{"cn.hostmanage.labelTipInfo.pattern"|translate}}</span>
+              <span class="error" ng-message="required">{{"cn.hostmanage.labelTipInfo.required"|translate}}</span>
+              <span class="error" ng-message="minlength">{{"cn.hostmanage.labelTipInfo.minlength"|translate}}</span>
+              <span class="error" ng-message="maxlength">{{"cn.hostmanage.labelTipInfo.maxlength"|translate}}</span>
+            </div>
+            <div class="error" ng-show="isExist">{{"cn.hostmanage.labelTipInfo.isExist"|translate}}</div>
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">Value：</label>
+          <div class="controls">
+            <input class="form-control" ng-model="formData.value" name="labelValue" placeholder="请输入value" required ng-pattern="/^[a-z][-a-z0-9]*[a-z]$/" ng-minlength="6" ng-maxlength="32"/>
+            <div class="error" ng-messages="(addLabelModelFormValid ||addLabelModelForm.labelValue.$dirty) && addLabelModelForm.labelValue.$error">
+              <span class="error" ng-message="pattern">{{"cn.hostmanage.labelTipInfo.pattern"|translate}}</span>
+              <span class="error" ng-message="required">{{"cn.hostmanage.labelTipInfo.required"|translate}}</span>
+              <span class="error" ng-message="maxlength">{{"cn.hostmanage.labelTipInfo.maxlength"|translate}}</span>
+              <span class="error" ng-message="minlength">{{"cn.hostmanage.labelTipInfo.minlength"|translate}}</span>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" data-toggle="modal" class="btn btn-info" ng-click="confirmAddLabel(addLabelModelForm)">{{"cn.hostmanage.confirm"|translate}}</button>
+      <button type="button" data-toggle="modal" class="btn btn-default" ng-click="$dismiss()">{{"cn.hostmanage.cancel"|translate}}</button>
+    </div>
+  </div>
+</script>

@@ -1,0 +1,1358 @@
+<div class="page-inner">
+    <div class="table-action">
+        <div class="pull-left" ng-show="userSwitchSrv.traincluster">
+            <button type="button" data-toggle="modal" class="btn btn-primary" ng-click="createTrain()">
+                <i class="icon-aw-add-to2"></i>新建训练</button>
+            <button type="button" data-toggle="modal" ng-click="stopTrain(checkedItems)" class="btn btn-warning" ng-disabled="!canStopTrain">
+                <i class="icon-aw-time-out"></i>停止训练</button>
+            <button type="button" data-toggle="modal" ng-click="retraining(checkedItems)" class="btn btn-info" ng-disabled="!canReTrain">
+                <i class="icon-aw-repeat"></i>重新训练</button>
+            <button type="button" data-toggle="modal" ng-click="subsequentTraining(checkedItems)" class="btn btn-info" ng-disabled="!canSubsequent">
+                <i class="icon-aw-start-up"></i>继续训练</button>
+            <div class="dropdown">
+                <button type="button" class="btn btn-info dropdown-toggle" ng-disabled="!canMoreOpt" data-toggle="dropdown">更多操作
+                    <i class="icon-aw-angle-down-1"></i>
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <button ng-click="checkJupyter(checkedItems)" ng-disabled="!canCheckJupyter">查看Jupyter Notebook</button>
+                    </li>
+                    <li>
+                        <button ng-click="checkTensorboard(checkedItems)" ng-disabled="!canCheckTensor">查看TensorBoard</button>
+                    </li>
+                    <li>
+                        <button ng-click="editTrainParams(checkedItems)" ng-disabled="!canEditHyperparameter">编辑超参数</button>
+                    </li>
+                    <li>
+                        <button ng-click="deleteTraining(checkedItems)" ng-disabled="!canDeleteTraining">删除训练</button>
+                    </li>
+                    <li>
+                        <button ng-click="relaseModel(checkedItems)" ng-disabled="!canRealseModel">发布模型</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="pull-right">
+            <div class="status-list train-status-list">
+                <ui-select ng-model="systemStatusForm.name" ng-change="choiceDataStatus(systemStatusForm.name)">
+                    <ui-select-match placeholder='请选择'>
+                        {{$select.selected.name}}
+                    </ui-select-match>
+                    <ui-select-choices repeat="status in trainStatusList">
+                        <div ng-bind-html="status.name | highlight: $select.search"></div>
+                    </ui-select-choices>
+                </ui-select>
+            </div>
+            <div class="search-box">
+                <form name="searchForm" novalidate ng-keyup="applyGlobalSearch()">
+                    <button class="btn" type="submit" ng-disabled="searchForm.$invalid">
+                        <i class="icon-aw-search"></i>
+                    </button>
+                    <input type="text" class="form-control" autocomplete="off" maxlength="128" name="searchTerm" ng-model="globalSearchTerm" placeholder="搜索" />
+                </form>
+            </div>
+            <button class="btn btn-renovat" ng-click="refresh()">
+                <i class="icon-aw-refresh"></i>
+            </button>
+            <setting title-data="trainTitleData" site-title="trainName" table-data="taskListData" search-tearm="trainSearchTerm(obj)" ng-if="!userSwitchSrv.traincluster"></setting>
+        </div>
+    </div>
+    <div class="table-content">
+        <empty-tip empty-type="loadData"></empty-tip>
+        <table ng-table="tableParams" class="table" template-pagination="/tmpl/ngtablepagination.html">
+            <colgroup ng-if="!userSwitchSrv.traincluster">
+                <col width="15%">
+                <col width="15%">
+                <col width="15%">
+                <col width="15%">
+                <col width="20%">
+                <col width="20%">
+            </colgroup>
+            <colgroup ng-if="userSwitchSrv.traincluster">
+                <col width="5%">
+                <col width="18%">
+                <col width="18%">
+                <col width="19%">
+                <col width="20%">
+                <col width="20%">
+            </colgroup>
+            <tr ng-repeat="item in $data">
+                <td header="'headerCheckbox.html'" ng-if="userSwitchSrv.traincluster">
+                    <label class="checkbox" ng-if="userSwitchSrv.traincluster">
+                        <input type="checkbox" ng-model="checkboxes.items[item.uuid]" />
+                        <i class="icon-aw-square"></i>
+                    </label>
+                </td>
+                <td data-title="dataTitles.name" sortable="'taskname'">
+                    <a ng-href="#/train/traincluster?id={{item.uuid}}" title="{{item.taskname}}" ng-if="trainTitleData[0].value">{{item.taskname}}</a>
+                </td>
+                <td data-title="dataTitles.namespace" sortable="'namespace'" ng-if="!userSwitchSrv.traincluster && trainTitleData[1].value">{{item.namespace}}</td>
+                <td data-title="dataTitles.status" sortable="'taskrunstatus_ori'" ng-if="trainTitleData[2].value">
+                    <span class="status-area" ng-class="{'status-purple':item.taskrunstatus == 0,'status-green':item.taskrunstatus == 2,'status-blue':item.taskrunstatus == 5,'status-gray':item.taskrunstatus == 6,
+          'status-yellow':item.taskrunstatus == 7 || item.taskrunstatus == 11,'status-red':item.taskrunstatus == 1 || item.taskrunstatus == 8 || item.taskrunstatus == 9 || item.taskrunstatus == 10
+          || item.taskrunstatus == 13,'status-black':item.taskrunstatus == 12}">{{item.taskrunstatus_ori}}</span>
+                </td>
+                <td data-title="dataTitles.engine" sortable="'taskengine'" ng-if="trainTitleData[3].value">{{item.taskengine}}</td>
+                <td data-title="dataTitles.runningTime" sortable="'taskruntime'" ng-if="trainTitleData[4].value">{{item.taskruntime}}</td>
+                <td data-title="dataTitles.trainingTime" sortable="'tasktrainlimittime'" ng-if="trainTitleData[5].value">{{item.tasktrainlimittime}}</td>
+            </tr>
+        </table>
+        <!-- 详情弹框 -->
+        <div ng-controller="detailCtrl">
+            <pane class="detail-body" animation="animation">
+                <div class="tab-content">
+                    <div class="detail-row">
+                        <div class="detail-title">
+                            <a class="an-close" ng-href="/#/train/traincluster">
+                                <i class="icon-aw-mail-reply"></i>
+                            </a>
+                            <span>{{taskDetailData.taskname}}{{"cn.common.detail"|translate}}</span>
+                        </div>
+                        <!-- <div class="detail-tab clearFix" ng-show="detailTabValue != '2'&&detailTabValue != '3'">
+              <div class="detail-tab-item left-tab-item" ng-click="detailTabChange('basicinfo')" ng-class="{'active':detailTabValue == '0'}">基本信息</div>
+              <div class="detail-tab-item right-tab-item" ng-click="detailTabChange('example')" ng-class="{'active':detailTabValue == '1'}">实例</div>
+            </div>
+            <div class="detail-info" ng-show="detailTabValue == '0'">
+              <h4>基础信息</h4>
+              <table class="table table-info column">
+                <tr>
+                  <td>集群名称</td>
+                  <td>{{taskDetailData.taskmetadata.taskname}}</td>
+                  <td>集群引擎</td>
+                  <td>{{taskDetailData.taskmetadata.session_train_engine}}</td>
+                </tr>
+                <tr>
+                  <td>版本</td>
+                  <td>{{taskDetailData.taskmetadata.session_train_engine_version}}</td>
+                  <td>状态</td>
+                  <td>{{taskDetailData.statusTranslate}}</td>
+                </tr>
+                <tr>
+                  <td>运行时长</td>
+                  <td>{{taskDetailData.taskruntime}}小时</td>
+                  <td>训练时限</td>
+                  <td>{{taskDetailData.tasktrainlimittime}}小时</td>
+                </tr>
+                <tr>
+                  <td>训练启动方式</td>
+                  <td>{{taskDetailData.taskmetadata.session_train_trigger_method}}</td>
+                  <td>密钥</td>
+                  <td>{{taskDetailData.taskmetadata.client_keypair_id}}</td>
+                </tr>
+              </table>
+              <h4>session</h4>
+              <table class="table table-info column">
+                <tr>
+                  <td ng-if="taskDetailData.taskmetadata.session_gputype">{{taskDetailData.taskmetadata.session_gputype}}</td>
+                  <td ng-if="taskDetailData.taskmetadata.session_cputype">{{taskDetailData.taskmetadata.session_cputype}}</td>
+                  <td ng-if="taskDetailData.taskmetadata.session_gputype">CPU:{{taskDetailData.taskmetadata.session_cpu_num}}核，GPU:{{taskDetailData.taskmetadata.session_nvidiagpu_num}}核，内存：{{taskDetailData.taskmetadata.session_memory_num}}G，{{taskDetailData.taskmetadata.session_pooltype == "shared"?"共享":"不共享"}}</td>
+                  <td ng-if="taskDetailData.taskmetadata.session_cputype">CPU:{{taskDetailData.taskmetadata.session_cpu_num}}核，GPU:{{taskDetailData.taskmetadata.session_nvidiagpu_num}}核，内存：{{taskDetailData.taskmetadata.session_memory_num}}G，{{taskDetailData.taskmetadata.session_pooltype == "shared"?"共享":"不共享"}}</td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </table>
+              <h4 ng-if="detailResourceData.length">资源组</h4>
+              <table class="table table-info column" ng-if="detailResourceData.length">
+                <tr ng-repeat="resource in detailResourceData">
+                  <td ng-if="resource.left.cputype"><span ng-if="resource.left.cputype">{{resource.left.cputype}}</span></td>
+                  <td ng-if="resource.left.cputype"><span ng-if="resource.left.cputype">{{resource.left.details}}</span></td>
+                  <td ng-if="resource.left.gputype"><span ng-if="resource.left.gputype">{{resource.left.gputype}}</span></td>
+                  <td ng-if="resource.left.gputype"><span ng-if="resource.left.gputype">{{resource.left.details}}</span></td>
+                  <td ng-if="resource.right.cputype"><span ng-if="resource.right.cputype">{{resource.right.cputype}}</span></td>
+                  <td ng-if="resource.right.cputype"><span ng-if="resource.right.cputype">{{resource.right.details}}</span></td>
+                  <td ng-if="resource.right.gputype"><span ng-if="resource.right.gputype">{{resource.right.gputype}}</span></td>
+                  <td ng-if="resource.right.gputype"><span ng-if="resource.right.gputype">{{resource.right.details}}</span></td>
+                  <td ng-if="!resource.right"></td>
+                  <td ng-if="!resource.right"></td>
+                </tr>
+              </table>
+              <h4 ng-if="detailVolumeData.length">存储卷</h4>
+              <table class="table table-info column" ng-if="detailVolumeData.length">
+                <tr ng-repeat="volume in detailVolumeData">
+                  <td>{{volume.left.pvc}}</td>
+                  <td ng-if="volume.right.pvc">{{volume.right.pvc}}</td>
+                </tr>
+              </table>
+              <h4 ng-if="paramsData.length">超参数</h4>
+              <table class="table table-info column" ng-if="paramsData.length">
+                <tr ng-repeat="param in paramsData">
+                  <td>超参数{{2*$index + 1}}</td>
+                  <td>名称：{{param.left.name}}，值：{{param.left.value}}</td>
+                  <td ng-if="param.right">超参数{{2*$index + 2}}</td>
+                  <td ng-if="param.right">名称：{{param.right.name}}，值：{{param.right.value}}</td>
+                </tr>
+              </table>
+            </div>
+            <div class="detail-info" ng-show="detailTabValue == '1'">
+                <div ng-if="!showMinoterCanvas">
+                    <div class="table-action">
+                        <div class="pull-right">
+                            <div class="status-list">
+                                <ui-select ng-model="systemStatusForm.detailName" ng-change="detailChoiceDataStatus(systemStatusForm.detailName)">
+                                    <ui-select-match placeholder='请选择'>
+                                    {{$select.selected.name}}
+                                    </ui-select-match>
+                                    <ui-select-choices repeat="status in trainDetailStatusList">
+                                    <div ng-bind-html="status.name | highlight: $select.search"></div>
+                                    </ui-select-choices>
+                                </ui-select>
+                            </div>
+                            <div class="search-box">
+                                <form name="searchForm" novalidate ng-keyup="trainDetailApplyGlobalSearch()">
+                                    <button class="btn" type="submit" ng-disabled="searchForm.$invalid">
+                                    <i class="icon-aw-search"></i>
+                                    </button>
+                                    <input type="text" class="form-control" autocomplete="off" maxlength="128" name="searchTerm" ng-model="searchOption.trainDetailGlobalSearchTerm"
+                                    placeholder="搜索" />
+                                </form>
+                            </div>
+                            <button class="btn btn-renovat" ng-click="podRefresh()">
+                                <i class="icon-aw-refresh"></i>
+                            </button>
+                            <setting title-data="trainDetailTitleData" site-title="trainDetailName" table-data="detailTableData" search-tearm="trainDetailSearchTerm(obj)"></setting>
+                        </div>
+                    </div>
+                    <div class="table-content">
+                        <table ng-table="detailTable" class="table" template-pagination="/tmpl/ngtablepagination.html">
+                          <empty-tip empty-type="detailLoadData" tip-id="'train-tip-msg'"></empty-tip>
+                            <colgroup>
+                                <col width="12%">
+                                <col width="12%">
+                                <col width="12%">
+                                <col width="12%">
+                                <col width="12%">
+                                <col width="20%">
+                                <col width="20%">
+                            </colgroup>
+                            <tr ng-repeat="item in $data">
+                                <td data-title="detailDataTitles.name" sortable="'name'" ng-if="trainDetailTitleData[0].value">{{item.name}}</td>
+                                <td data-title="detailDataTitles.status" sortable="'status_ori'" ng-if="trainDetailTitleData[1].value">
+                                  <span ng-class="{'bg-green':item.status=='0','bg-red':item.status=='1'}">{{item.status_ori}}</span>
+                                </td>
+                                <td data-title="detailDataTitles.pod" sortable="'podIP'" ng-if="trainDetailTitleData[2].value">{{item.podIP}}</td>
+                                <td data-title="detailDataTitles.host" sortable="'hostIP'" ng-if="trainDetailTitleData[3].value">{{item.hostIP}}</td>
+                                <td data-title="detailDataTitles.sshport" sortable="'sshport'" ng-if="trainDetailTitleData[4].value">{{item.sshport}}</td>
+                                <td data-title="detailDataTitles.createdtime" sortable="'startTime_ori'" ng-if="trainDetailTitleData[5].value">{{item.startTime_ori}}</td>
+                                <td data-title="detailDataTitles.option" sortable="'tasktrainlimittime'">
+                                    <a ng-click="checkLog(item.name, item.containers, taskDetailData.taskrunstatus, item.status)" ng-class="{'check-log':!item.containers||item.containers.length<=0}" class="check-log-btn">查看日志</a>
+                                    <a ng-click="watchMinoter(item.name)" class="check-log-btn">查看监控</a>
+                                    <a ng-click="watchConsol(item.name, item.containers)" class="check-log-btn">控制台</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="monitor-view" ng-if="showMinoterCanvas">
+                    <div class="back-to-details">
+                        <i class="icon-aw-angle-left-1"></i>
+                        <span ng-click="backToDetails()">返回</span>
+                    </div>
+                    <div class="monitor-btn-group">
+                        <ul class="time-btn-list">
+                            <li ng-class="{'active':activeFlag == '1h'}" ng-click="changeDataByTime('1h','300')">最近1小时</li>
+                            <li ng-class="{'active':activeFlag == '12h'}" ng-click="changeDataByTime('12h','3600')">最近12小时</li>
+                            <li ng-class="{'active':activeFlag == '1d'}" ng-click="changeDataByTime('1d','7200')">最近1天</li>
+                            <li ng-class="{'active':activeFlag == '7d'}" ng-click="changeDataByTime('7d','86400')">最近1周</li>
+                        </ul>
+                    </div>
+                    <div class="col-12">
+                        <div class="box layout-grid areaChart">
+                            <div class="col-6" ng-repeat="item in resInfo">
+                                <div class="inner">
+                                    <div class="no-data" ng-if="!item.showNoData">暂无数据</div>
+                                    <monitor-area-stack chart-title="item.title" data="item.data"></monitor-area-stack>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="detail-info" ng-show="detailTabValue == '3'">
+              <span class="log-return-btn" ng-click="logReturn()"><i class="icon-aw-angle-left"></i>返回</span>
+                <div class="log-container-select">
+                  <ui-select ng-model="logForm.container" ng-change="logChange(detailLogPodName, logForm.container)">
+                    <ui-select-match placeholder="请选择container">{{$select.selected}}</ui-select-match>
+                    <ui-select-choices repeat="item in detailLogContainers">
+                      <div ng-bind-html="item | highlight: $select.search"></div>
+                    </ui-select-choices>
+                  </ui-select>
+                </div>
+              <div class="log-container">
+                <iframe ng-src="{{someUrl}}" seamless="seamless" height="100%" width="100%"></iframe>
+              </div>
+            </div>
+            <div class="detail-info" ng-show="detailTabValue == '2'">
+              <span class="log-return-btn" ng-click="logReturn()">
+                <i class="icon-aw-angle-left"></i>返回</span>
+              <div class="log-container-select">
+                <ui-select ng-model="logForm.container" ng-change="logChange(detailLogPodName, logForm.container)">
+                  <ui-select-match placeholder="请选择container">{{$select.selected}}</ui-select-match>
+                  <ui-select-choices repeat="item in detailLogContainers">
+                    <div ng-bind-html="item | highlight: $select.search"></div>
+                  </ui-select-choices>
+                </ui-select>
+              </div>
+              <div class="log-container">
+                <div ng-repeat="item in detailLogInfo track by $index">{{item}}</div>
+              </div>
+            </div> -->
+                        <div class="tab-box">
+                            <ul class="nav nav-tabs nav-justified">
+                                <li ng-class="{'active':detailTabValue == '0'}" ng-click="detailTabChange('basicinfo')">
+                                    <a>基本信息</a>
+                                </li>
+                                <li ng-class="{'active':detailTabValue == '1'}" ng-click="detailTabChange('example')">
+                                    <a>实例</a>
+                                </li>
+                                <li ng-class="{'active':detailTabValue == '2'}" ng-click="detailTabChange('log')">
+                                    <a>日志</a>
+                                </li>
+                            </ul>
+                            <div class="tab-content">
+                                <div class="tab-pane" ng-class="{'active':detailTabValue == '0'}">
+                                    <h4>基础信息</h4>
+                                    <table class="table table-info column">
+                                        <tr>
+                                            <td>集群名称</td>
+                                            <td>{{taskDetailData.taskmetadata.taskname}}</td>
+                                            <td>集群引擎</td>
+                                            <td>{{taskDetailData.taskmetadata.session_train_engine}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>版本</td>
+                                            <td>{{taskDetailData.taskmetadata.session_train_engine_version}}</td>
+                                            <td>状态</td>
+                                            <td>{{taskDetailData.statusTranslate}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>运行时长</td>
+                                            <td>{{taskDetailData.taskruntime}}小时</td>
+                                            <td>训练时限</td>
+                                            <td>{{taskDetailData.tasktrainlimittime}}小时</td>
+                                        </tr>
+                                        <tr>
+                                            <td>训练启动方式</td>
+                                            <td>{{taskDetailData.taskmetadata.session_train_trigger_method}}</td>
+                                            <td>密钥</td>
+                                            <td>{{taskDetailData.taskmetadata.client_keypair_id}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>数据集名称和挂载路径</td>
+                                            <td>{{dataSetListStr}}</td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                    <h4>session</h4>
+                                    <table class="table table-info column">
+                                        <tr>
+                                            <td ng-if="taskDetailData.taskmetadata.session_gputype">{{taskDetailData.taskmetadata.session_gputype}}</td>
+                                            <td ng-if="taskDetailData.taskmetadata.session_cputype">{{taskDetailData.taskmetadata.session_cputype}}</td>
+                                            <td ng-if="taskDetailData.taskmetadata.session_gputype">CPU:{{taskDetailData.taskmetadata.session_cpu_num}}核，GPU:{{taskDetailData.taskmetadata.session_nvidiagpu_num}}核，内存：{{taskDetailData.taskmetadata.session_memory_num}}G，{{taskDetailData.taskmetadata.session_pooltype == "shared"?"共享":"不共享"}}</td>
+                                            <td ng-if="taskDetailData.taskmetadata.session_cputype">CPU:{{taskDetailData.taskmetadata.session_cpu_num}}核，GPU:{{taskDetailData.taskmetadata.session_nvidiagpu_num}}核，内存：{{taskDetailData.taskmetadata.session_memory_num}}G，{{taskDetailData.taskmetadata.session_pooltype == "shared"?"共享":"不共享"}}</td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                    <h4 ng-if="detailResourceData.length">资源组</h4>
+                                    <table class="table table-info column" ng-if="detailResourceData.length">
+                                        <tr ng-repeat="resource in detailResourceData">
+                                            <td ng-if="resource.left.cputype"><span ng-if="resource.left.cputype">{{resource.left.cputype}}</span></td>
+                                            <td ng-if="resource.left.cputype"><span ng-if="resource.left.cputype">{{resource.left.details}}</span></td>
+                                            <td ng-if="resource.left.gputype"><span ng-if="resource.left.gputype">{{resource.left.gputype}}</span></td>
+                                            <td ng-if="resource.left.gputype"><span ng-if="resource.left.gputype">{{resource.left.details}}</span></td>
+                                            <td ng-if="resource.right.cputype"><span ng-if="resource.right.cputype">{{resource.right.cputype}}</span></td>
+                                            <td ng-if="resource.right.cputype"><span ng-if="resource.right.cputype">{{resource.right.details}}</span></td>
+                                            <td ng-if="resource.right.gputype"><span ng-if="resource.right.gputype">{{resource.right.gputype}}</span></td>
+                                            <td ng-if="resource.right.gputype"><span ng-if="resource.right.gputype">{{resource.right.details}}</span></td>
+                                            <td ng-if="!resource.right"></td>
+                                            <td ng-if="!resource.right"></td>
+                                        </tr>
+                                    </table>
+                                    <h4 ng-if="detailVolumeData.length">存储卷</h4>
+                                    <table class="table table-info column" ng-if="detailVolumeData.length">
+                                        <tr ng-repeat="volume in detailVolumeData">
+                                            <td>{{volume.left.pvc}}</td>
+                                            <td ng-if="volume.right.pvc">{{volume.right.pvc}}</td>
+                                        </tr>
+                                    </table>
+                                    <h4 ng-if="paramsData.length">超参数</h4>
+                                    <table class="table table-info column" ng-if="paramsData.length">
+                                        <tr ng-repeat="param in paramsData">
+                                            <td>超参数{{2*$index + 1}}</td>
+                                            <td>名称：{{param.left.name}}，值：{{param.left.value}}</td>
+                                            <td ng-if="param.right">超参数{{2*$index + 2}}</td>
+                                            <td ng-if="param.right">名称：{{param.right.name}}，值：{{param.right.value}}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="tab-pane" ng-class="{'active':detailTabValue == '1'}">
+                                    <div ng-if="showModel">
+                                        <div class="table-action">
+                                            <div class="pull-right">
+                                                <div class="status-list">
+                                                    <ui-select ng-model="systemStatusForm.detailName" ng-change="detailChoiceDataStatus(systemStatusForm.detailName)">
+                                                        <ui-select-match placeholder='请选择'>
+                                                            {{$select.selected.name}}
+                                                        </ui-select-match>
+                                                        <ui-select-choices repeat="status in trainDetailStatusList">
+                                                            <div ng-bind-html="status.name | highlight: $select.search"></div>
+                                                        </ui-select-choices>
+                                                    </ui-select>
+                                                </div>
+                                                <div class="search-box">
+                                                    <form name="searchForm" novalidate ng-keyup="trainDetailApplyGlobalSearch()">
+                                                        <button class="btn" type="submit" ng-disabled="searchForm.$invalid">
+                                                            <i class="icon-aw-search"></i>
+                                                        </button>
+                                                        <input type="text" class="form-control" autocomplete="off" maxlength="128" name="searchTerm" ng-model="searchOption.trainDetailGlobalSearchTerm" placeholder="搜索" />
+                                                    </form>
+                                                </div>
+                                                <button class="btn btn-renovat" ng-click="podRefresh()">
+                                                    <i class="icon-aw-refresh"></i>
+                                                </button>
+                                                <setting title-data="trainDetailTitleData" site-title="trainDetailName" table-data="detailTableData" search-tearm="trainDetailSearchTerm(obj)"></setting>
+                                            </div>
+                                        </div>
+                                        <div class="table-content">
+                                            <table ng-table="detailTable" class="table" template-pagination="/tmpl/ngtablepagination.html">
+                                                <empty-tip empty-type="detailLoadData" tip-id="'train-tip-msg'"></empty-tip>
+                                                <colgroup>
+                                                    <col width="12%">
+                                                    <col width="12%">
+                                                    <col width="12%">
+                                                    <col width="12%">
+                                                    <col width="12%">
+                                                    <col width="20%">
+                                                    <col width="20%">
+                                                </colgroup>
+                                                <tr ng-repeat="item in $data">
+                                                    <td data-title="detailDataTitles.name" sortable="'name'" ng-if="trainDetailTitleData[0].value">{{item.name}}</td>
+                                                    <td data-title="detailDataTitles.status" sortable="'status_ori'" ng-if="trainDetailTitleData[1].value">
+                                                        <span ng-class="{'bg-green':item.status=='0','bg-red':item.status=='1'}">{{item.status_ori}}</span>
+                                                    </td>
+                                                    <td data-title="detailDataTitles.pod" sortable="'podIP'" ng-if="trainDetailTitleData[2].value">{{item.podIP}}</td>
+                                                    <td data-title="detailDataTitles.host" sortable="'hostIP'" ng-if="trainDetailTitleData[3].value">{{item.hostIP}}</td>
+                                                    <td data-title="detailDataTitles.sshport" sortable="'sshport'" ng-if="trainDetailTitleData[4].value">{{item.sshport}}</td>
+                                                    <td data-title="detailDataTitles.createdtime" sortable="'startTime_ori'" ng-if="trainDetailTitleData[5].value">{{item.startTime_ori}}</td>
+                                                    <td data-title="detailDataTitles.option" sortable="'tasktrainlimittime'">
+                                                        <!-- <a ng-click="checkLog(item.name, item.containers, taskDetailData.taskrunstatus, item.status)" ng-class="{'check-log':!item.containers||item.containers.length<=0}" class="check-log-btn">查看日志</a> -->
+                                                        <a ng-click="watchMinoter(item.name)" class="check-log-btn">查看监控</a>
+                                                        <a ng-click="watchConsol(item.name, item.containers)" class="check-log-btn">控制台</a>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="monitor-view" ng-if="showMinoterCanvas">
+                                        <div class="back-to-details">
+                                            <i class="icon-aw-angle-left-1"></i>
+                                            <span ng-click="backToDetails()">返回</span>
+                                        </div>
+                                        <div class="monitor-btn-group">
+                                            <ul class="time-btn-list">
+                                                <li ng-class="{'active':activeFlag == '1h'}" ng-click="changeDataByTime('1h','300')">最近1小时</li>
+                                                <li ng-class="{'active':activeFlag == '12h'}" ng-click="changeDataByTime('12h','3600')">最近12小时</li>
+                                                <li ng-class="{'active':activeFlag == '1d'}" ng-click="changeDataByTime('1d','7200')">最近1天</li>
+                                                <li ng-class="{'active':activeFlag == '7d'}" ng-click="changeDataByTime('7d','86400')">最近1周</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="box layout-grid areaChart">
+                                                <div class="col-6" ng-repeat="item in resInfo">
+                                                    <div class="inner">
+                                                        <div class="no-data" ng-if="!item.showNoData">暂无数据</div>
+                                                        <monitor-area-stack chart-title="item.title" data="item.data"></monitor-area-stack>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div ng-if="showWebshell">
+                                        <span class="log-return-btn" ng-click="logReturn()"><i class="icon-aw-angle-left"></i>返回</span>
+                                        <div class="log-container-select">
+                                            <ui-select ng-model="logForm.container" ng-change="logChange(detailLogPodName, logForm.container)">
+                                                <ui-select-match placeholder="请选择container">{{$select.selected}}</ui-select-match>
+                                                <ui-select-choices repeat="item in detailLogContainers">
+                                                    <div ng-bind-html="item | highlight: $select.search"></div>
+                                                </ui-select-choices>
+                                            </ui-select>
+                                        </div>
+                                        <div class="log-container">
+                                            <iframe ng-src="{{someUrl}}" seamless="seamless" height="100%" width="100%"></iframe>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane" ng-class="{'active':detailTabValue == '2'}">
+                                    <div class="log-container">
+                                        <div ng-repeat="item in logLists track by $index">{{item.log}}</div>
+                                        <div class="text-center">
+                                            <button type="button" class="btn btn-info" ng-disabled="canGetLog" ng-if="showLogBtn" ng-click="getMoreLog()">{{"cn.modelManage.moreLog"|translate}}</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </pane>
+        </div>
+    </div>
+</div>
+<script type="text/ng-template" id="headerCheckbox.html">
+    <label class="checkbox">
+        <input type="checkbox" ng-model="checkboxes.checked" class="select-all" value="" />
+        <i class="icon-aw-square"></i>
+    </label>
+</script>
+<script type="text/ng-template" id="createTrain.html">
+    <div class="modal-common modal-step create-train-modal">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="$dismiss()">×</button>
+            <h3 class="modal-title  clearfix">新建训练</h3>
+            <ul class="steps-sytle-ver clearfix">
+                <li class="clearfix step-start" ng-class="{'active':inStep>=1}">
+                    <div class="inner">
+                        <span>基本设置</span>
+                        <i>1</i>
+                    </div>
+                </li>
+                <li class="clearfix step-middle" ng-class="{'active':inStep>=2}">
+                    <div class="inner">
+                        <span>存储卷设置</span>
+                        <i>2</i>
+                    </div>
+                </li>
+                <li class="clearfix step-middle" ng-class="{'active':inStep>=3}">
+                    <div class="inner">
+                        <span>训练设置</span>
+                        <i>3</i>
+                    </div>
+                </li>
+                <li class="clearfix step-middle" ng-class="{'active':inStep>=4}">
+                    <div class="inner">
+                        <span>超参数设置</span>
+                        <i>4</i>
+                    </div>
+                </li>
+                <li class="clearfix step-end" ng-class="{'active':inStep>=5}">
+                    <div class="inner">
+                        <span>确认信息</span>
+                        <i>5</i>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="modal-body">
+            <div class="create-train-first" ng-show="inStep=='1'">
+                <form name="createFirstForm" novalidate>
+                    <div class="control-group">
+                        <label class="control-label">
+                            <span class="red">*</span>任务名称：</label>
+                        <div class="controls">
+                            <input class="form-controls" name="taskname" ng-model="trainForm.taskname" placeholder="请输入任务名称" ng-pattern="/^[a-z][-a-z0-9]*[a-z]$/" ng-minlength="6" ng-maxlength="32" required repeat-verify table-data="verifyTableData" key-name="keyname"/>
+                            <div class="error" ng-messages="(createFirstFormValid ||createFirstForm.taskname.$dirty) && createFirstForm.taskname.$error">
+                                <span class="error" ng-message="pattern">只能输入小写字母、数字和横线，且首尾为小写字母</span>
+                                <span class="error" ng-message="required">必填项</span>
+                                <span class="error" ng-message="minlength">最小长度为6位</span>
+                                <span class="error" ng-message="maxlength">最大长度为32位</span>
+                                <span ng-message="nameexist">存在同名的任务</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            <span class="red">*</span>引擎选择：</label>
+                        <div class="controls">
+                            <div class="add-item">
+                                <ui-select ng-model="trainForm.session_train_engine" name="Taskengine" ng-change="getVersionData($select.selected.uuid)" required>
+                                    <ui-select-match placeholder="请选择引擎">{{$select.selected.name}}</ui-select-match>
+                                    <ui-select-choices repeat="Taskengine in TaskengineData">
+                                        <div ng-bind-html="Taskengine.name | highlight: $select.search"></div>
+                                    </ui-select-choices>
+                                </ui-select>
+                                <div class="error" ng-messages="(createFirstFormValid ||createFirstForm.Taskengine.$dirty) && createFirstForm.Taskengine.$error">
+                                    <span class="error" ng-message="required">必填项</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            <span class="red">*</span>版本选择：</label>
+                        <div class="controls">
+                            <div class="add-item">
+                                <ui-select ng-model="trainForm.session_train_engine_version" name="version" required>
+                                    <ui-select-match placeholder="请选择版本">{{$select.selected.version}}</ui-select-match>
+                                    <ui-select-choices repeat="version in versionListData">
+                                        <div ng-bind-html="version.version | highlight: $select.search"></div>
+                                    </ui-select-choices>
+                                </ui-select>
+                                <div class="error" ng-messages="(createFirstFormValid ||createFirstForm.version.$dirty) && createFirstForm.version.$error">
+                                    <span class="error" ng-message="required">必填项</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">训练类型<i class="icon-aw-question-mark question-tip" uib-popover='{{"cn.traincluster.inputTips.trainType"|translate}}'  popover-trigger="mouseenter" popover-placement = "bottom" ></i>：</label>
+                        <div class="controls time-checkbox radio">
+                            <label class="config-radio">
+                                <input type="radio" name="trainType" ng-model="trainForm.trainType" value="single" ng-change="trainTypeChange()">
+                                <i></i>
+                                <span>单机</span>
+                            </label>
+                            <label class="config-radio">
+                                <input type="radio" name="trainType" ng-model="trainForm.trainType" value="distributed" ng-change="trainTypeChange()">
+                                <i></i>
+                                <span>分布式</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            <span class="red">*</span>session：</label>
+                        <div class="controls">
+                            <div class="create-train-type">
+                                <div class="type-content session-content">
+                                    <ui-select ng-model="trainForm.session_cputype" name="sessionCputype" ng-change="seessionTypeChange()" required>
+                                        <ui-select-match placeholder="请选择机型">{{$select.selected.option}}</ui-select-match>
+                                        <ui-select-choices repeat="type in allTypeData">
+                                            <div ng-bind-html="type.option | highlight: $select.search"></div>
+                                        </ui-select-choices>
+                                    </ui-select>
+                                    <div class="error type-bottom" ng-messages="(createFirstFormValid ||createFirstForm.sessionCputype.$dirty) && createFirstForm.sessionCputype.$error">
+                                        <span class="error" ng-message="required">必填项</span>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="type-control-label">配置：</label>
+                                        <div class="controls clearFix type-control config-control">
+                                            <div class="time-checkbox radio">
+                                                <label class="config-radio">
+                                                    <input type="radio" name="trainStartType" ng-model="trainForm.configOPtion.method" value="defaultConfig">
+                                                    <i></i>
+                                                    <span>选择配置</span>
+                                                </label>
+                                                <label class="config-radio">
+                                                    <input type="radio" name="trainStartType" ng-model="trainForm.configOPtion.method" value="customConfig">
+                                                    <i></i>
+                                                    <span>自定义配置</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div ng-if="trainForm.configOPtion.method == 'defaultConfig'">
+                                        <div class="control-group">
+                                            <label class="type-control-label">配置选择：</label>
+                                            <div class="controls clearFix config-chioce">
+                                                <ui-select ng-model="trainForm.configOPtion.typeFlavor" name="typeFlavor" required>
+                                                    <ui-select-match placeholder="请选择配置">{{$select.selected.name+ '--CPU' + $select.selected.cpu + '核' + 'GPU' + $select.selected.gpu + '核' + '内存' + $select.selected.memory + 'G'}}</ui-select-match>
+                                                    <ui-select-choices repeat="flavor in flavorList">
+                                                        <div ng-bind-html="flavor.name + '--CPU' + flavor.cpu + '核' + 'GPU' + flavor.gpu + '核' + '内存' + flavor.memory + 'G' | highlight: $select.search"></div>
+                                                    </ui-select-choices>
+                                                </ui-select>
+                                                <div class="error" ng-messages="(createFirstFormValid ||createFirstForm.typeFlavor.$dirty) && createFirstForm.typeFlavor.$error">
+                                                    <span class="error" ng-message="required">必填项</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div ng-if="trainForm.configOPtion.method == 'customConfig'">
+                                        <div class="control-group">
+                                            <label class="type-control-label">CPU数量(核)：</label>
+                                            <div class="controls clearFix type-control">
+                                                <change-num number="trainForm.session_cpu_num" addnum="trainFormInfo.addNumber" pattern="trainFormInfo.cpuPattern" names="trainFormInfo.cpuName" createtrainform="createFirstForm" mydesc="trainFormInfo.cpuDesc"></change-num>
+                                            </div>
+                                        </div>
+                                        <div class="control-group" ng-if="showSessionGpu">
+                                            <label class="type-control-label">GPU数量(核)：</label>
+                                            <div class="controls clearFix type-control">
+                                                <change-num number="trainForm.session_nvidiagpu_num" addnum="trainFormInfo.addNumber" pattern="trainFormInfo.cpuPattern" names="trainFormInfo.gpuName" createtrainform="createFirstForm" mydesc="trainFormInfo.cpuDesc"></change-num>
+                                            </div>
+                                        </div>
+                                        <div class="control-group">
+                                            <label class="type-control-label">内存大小(GB)：</label>
+                                            <div class="controls clearFix type-control">
+                                                <change-num number="trainForm.session_memory_num" addnum="trainFormInfo.memoryAddNumber" pattern="trainFormInfo.memoryPattern" names="trainFormInfo.memoryName" createtrainform="createFirstForm" mydesc="trainFormInfo.memoryDesc"></change-num>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="type-control-label">共享主机资源：</label>
+                                        <div class="controls type-control">
+                                            <label class="checkbox">
+                                                <input type="checkbox" ng-model="trainForm.session_pooltype" />
+                                                <i class="icon-aw-square"></i>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- <div class="control-group resource-group" ng-if="!canAddResourceGroups"> -->
+                    <div class="control-group resource-group" ng-if="trainForm.trainType == 'distributed'">
+                        <label class="control-label">资源组：</label>
+                        <div class="controls">
+                            <div class="create-train-type" ng-repeat="item in trainForm.resource_groups track by $index">
+                                <div class="type-title">
+                                    <p>{{"cn.traincluster."+item.name|translate}}</p>
+                                </div>
+                                <div class="type-content">
+                                  <div class="control-group">
+                                    <label class="type-control-label">机型：</label>
+                                    <div class="controls config-chioce">
+                                      <ui-select ng-model="item.cputype" name="type_{{$index}}" ng-change="modelChange(item)" required>
+                                        <ui-select-match placeholder="请选择机型">{{$select.selected.option}}</ui-select-match>
+                                        <ui-select-choices repeat="type in item.typeData">
+                                            <div ng-bind-html="type.option | highlight: $select.search"></div>
+                                        </ui-select-choices>
+                                    </ui-select>
+                                    <div class="error type-bottom" ng-messages="(createFirstFormValid ||createFirstForm['type_'+$index].$dirty) && createFirstForm['type_'+$index].$error">
+                                        <span class="error" ng-message="required">必填项</span>
+                                    </div>
+                                    </div>
+                                  </div>
+                                    
+                                    <div class="control-group">
+                                        <label class="type-control-label">数量(台)：</label>
+                                        <div class="controls clearFix type-control">
+                                            <change-num number="item.replica" addnum="trainFormInfo.addNumber" pattern="item.numPattern" names="item.numName" createtrainform="createFirstForm" mydesc="item.numDesc"></change-num>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="type-control-label">配置：</label>
+                                        <div class="controls clearFix type-control">
+                                            <div class="time-checkbox radio">
+                                                <label class="config-radio">
+                                                    <input type="radio" name="trainStartType_{{$index}}" ng-model="item.configOPtion.method" value="defaultConfig">
+                                                    <i></i>
+                                                    <span>选择配置</span>
+                                                </label>
+                                                <label class="config-radio">
+                                                    <input type="radio" name="trainStartType_{{$index}}" ng-model="item.configOPtion.method" value="customConfig">
+                                                    <i></i>
+                                                    <span>自定义配置</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div ng-if="item.configOPtion.method == 'defaultConfig'">
+                                        <div class="control-group">
+                                            <label class="type-control-label">配置选择：</label>
+                                            <div class="controls clearFix config-chioce">
+                                                <ui-select ng-model="item.configOPtion.typeFlavor" name="typeFlavor_{{$index}}" required>
+                                                    <ui-select-match placeholder="请选择配置">{{$select.selected.name+ '--CPU' + $select.selected.cpu + '核' + 'GPU' + $select.selected.gpu + '核' + '内存' + $select.selected.memory + 'G'}}</ui-select-match>
+                                                    <ui-select-choices repeat="flavor in item.flavorList">
+                                                        <div ng-bind-html="flavor.name + '--CPU' + flavor.cpu + '核' + 'GPU' + flavor.gpu + '核' + '内存' + flavor.memory + 'G' | highlight: $select.search"></div>
+                                                    </ui-select-choices>
+                                                </ui-select>
+                                                <div class="error" ng-messages="(createFirstFormValid ||createFirstForm['typeFlavor_'+$index].$dirty) && createFirstForm['typeFlavor_'+$index].$error">
+                                                    <span class="error" ng-message="required">必填项</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div ng-if="item.configOPtion.method == 'customConfig'">
+                                        <div class="control-group">
+                                            <label class="type-control-label">每台CPU数量(核)：</label>
+                                            <div class="controls clearFix type-control">
+                                                <change-num number="item.cpu" addnum="trainFormInfo.addNumber" pattern="item.corePattern" names="item.coreName" createtrainform="createFirstForm" mydesc="item.coreDesc"></change-num>
+                                            </div>
+                                        </div>
+                                        <div class="control-group" ng-if="item.cputype.type=='gpu'">
+                                            <label class="type-control-label">每台GPU数量(核)：</label>
+                                            <div class="controls clearFix type-control">
+                                                <change-num number="item.nvidiagpu" addnum="trainFormInfo.addNumber" pattern="item.corePattern" names="item.gpuName" createtrainform="createFirstForm" mydesc="item.coreDesc"></change-num>
+                                            </div>
+                                        </div>
+                                        <div class="control-group">
+                                            <label class="type-control-label">每台内存大小(GB)：</label>
+                                            <div class="controls clearFix type-control">
+                                                <change-num number="item.memory" addnum="trainFormInfo.memoryAddNumber" pattern="item.numPattern" names="item.memoryName" createtrainform="createFirstForm" mydesc="item.numDesc"></change-num>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="type-control-label">共享主机资源：</label>
+                                        <div class="controls type-control">
+                                            <label class="checkbox">
+                                                <input type="checkbox" ng-model="item.pooltype" />
+                                                <i class="icon-aw-square"></i>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <!-- <div class="control-group">
+                                        <div class="add-item-group">
+                                            <label class="type-control-label">资源标签：</label>
+                                            <div class="controls label-controls">
+                                                <input class="form-controls" name="name_{{$index}}" ng-model="item.name" ng-pattern="/^[a-z]+[a-z0-9]*$/" ng-maxlength="32" required ng-disabled="trainForm.session_train_engine.name.toLowerCase() == 'tensorflow'" />
+                                                <div class="error" ng-messages="(createFirstFormValid ||createFirstForm['name_'+$index].$dirty) && createFirstForm['name_'+$index].$error">
+                                                    <span class="error" ng-message="pattern">只能输入小写字母和数字，并且必须以字母开头。</span>
+                                                    <span class="error" ng-message="required">必填项</span>
+                                                    <span class="error" ng-message="maxlength">最大长度为32位</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div> -->
+                                </div>
+                            </div>
+                            <!-- <div class="train-add-type" ng-class="{'border-bottom': trainForm.resource_groups.length > 0}">
+                                <span ng-click="addTrainModel()">
+                                <i class="icon-aw-add-to2"></i>添加机型</span>
+                            </div> -->
+                        </div>
+                    </div>
+                    <div class="control-group ssh-group">
+                        <label class="control-label">启用SSH密钥登录：</label>
+                        <div class="controls">
+                            <label class="checkbox ssh-checkbox">
+                                <input type="checkbox" ng-model="sshoption.SSH_login" />
+                                <i class="icon-aw-square"></i>
+                            </label>
+                            <label class="control-label ssh-label" ng-if="sshoption.SSH_login">SSH密钥：</label>
+                            <div class="controls ssh-controls" ng-if="sshoption.SSH_login">
+                                <ui-select ng-model="trainForm.client_keypair_id" required name="SSHkey">
+                                    <ui-select-match placeholder='请选择SSH密钥'>
+                                        {{$select.selected.keyname}}
+                                    </ui-select-match>
+                                    <ui-select-choices repeat="SSHkey.keyname as SSHkey in sshKeyList">
+                                        <div ng-bind-html="SSHkey.keyname | highlight: $select.search"></div>
+                                    </ui-select-choices>
+                                </ui-select>
+                                <div class="error" ng-messages="(createFirstFormValid ||createFirstForm.SSHkey.$dirty) && createFirstForm.SSHkey.$error">
+                                    <span class="error" ng-message="required">必填项</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group resource-group">
+                        <label class="control-label">
+                            <span class="red">*</span>{{'cn.dataSetManage.dataSet'|translate}}：</label> 
+                        <div class="controls">
+                            <div class="create-train-type" ng-repeat="item in dataSetList">
+                                <div class="type-title">
+                                    <p> {{"cn.dataSetManage.dataSet"|translate}}{{$index+1}}
+                                        <i class="icon-aw-wrong close-data" ng-click="deleDataSet($index)"></i>                              
+                                    </p>
+                                </div>
+                                <div class="type-content">
+                                    <div class="control-group">
+                                        <label class="type-control-label">{{'cn.dataSetManage.dataTitles.name'|translate}}：</label>
+                                        <div class="controls config-chioce">
+                                            <ui-select ng-model="item.name" name="dataSet_{{$index}}" ng-click="datasetChange(item)" required>
+                                                <ui-select-match placeholder="{{'cn.configmanage.placeholder.choiceDataSet'|translate}}">{{$select.selected.pvcname}}</ui-select-match>
+                                                <ui-select-choices repeat="type.pvcname as type in unselectedList">
+                                                    <div ng-bind-html="type.pvcname | highlight: $select.search"></div>
+                                                </ui-select-choices>
+                                            </ui-select>
+                                            <div class="error" ng-messages="(createFirstFormValid ||createFirstForm['dataSet_'+$index].$dirty) && createFirstForm['dataSet_'+$index].$error">
+                                                <span class="error" ng-message="required">{{'cn.errors.required'|translate}}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="type-control-label">{{'cn.configmanage.mountCatalog'|translate}}：</label>
+                                        <div class="controls config-chioce">
+                                            <input class="form-controls" name="catalog_{{$index}}" ng-model="item.mountCatalog" placeholder="{{'cn.configmanage.placeholder.mountCatalog'|translate}}" required />
+                                            <div class="error" ng-messages="(createFirstFormValid ||createFirstForm['catalog_'+$index].$dirty) && createFirstForm['catalog_'+$index].$error">
+                                                <span class="error" ng-message="required">{{'cn.errors.required'|translate}}</span>
+                                            </div>
+                                        </div> 
+                                              
+                                    </div>        
+                                </div>
+                            </div>
+                            <div class="controls">
+                                <span class="show-add-btn" ng-click=addDataSetTitle()>
+                                    <i class="icon-aw-add-to2 close-data"></i>                              
+                                    {{'cn.dataSetManage.dataSet'|translate}}
+                                </span>
+                            </div>   
+                        </div>
+                    </div>       
+                </form>
+            </div>
+            <div class="create-train-second" ng-show="inStep=='2'">
+                <form name="createSecondForm" novalidate>
+                    <div class="prompt-message">
+                        训练集群支持对接分布式的文件系统存储卷进行数据的持久化
+                        支持挂载多个存储卷，默认第一个存储卷挂载会挂载到/root/{引擎名称}
+                        之后的存储卷会依次挂载到/root/{存储卷名称}
+                        建议将需要持久化保持的数据存储到存储卷中
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            <span class="red">*</span>存储卷：
+                        </label>
+                        <div class="controls">
+                            <ui-select ng-model="trainForm.volume_groups[0]" name="volume" ng-click="volumeChange(0)" required>
+                                <ui-select-match placeholder="请选择存储卷">{{$select.selected.pvc}}</ui-select-match>
+                                <ui-select-choices repeat="volume in volumeData[0]">
+                                    <div ng-bind-html="volume.pvc | highlight: $select.search"></div>
+                                </ui-select-choices>
+                            </ui-select>
+                            <div class="error type-bottom" ng-messages="(createSecondFormValid ||createSecondForm.volume.$dirty) && createSecondForm.volume.$error">
+                                <span class="error" ng-message="required">必填项</span>
+                            </div>
+                        </div>
+                        <div class="controls controls-volume">
+                            <div class="add-volume-controls" ng-repeat="item in addVolumes">
+                                <div class="volume-title">
+                                    <p>附加存储卷{{$index + 1}}</p>
+                                    <span ng-click="removeVolume($index+1)">
+                    <i class="icon-aw-wrong"></i>
+                  </span>
+                                </div>
+                                <div class="volume-content">
+                                    <ui-select ng-model="trainForm.volume_groups[$index + 1]" name="add_volume_{{$index}}" ng-click="volumeChange($index + 1)" required>
+                                        <ui-select-match placeholder="请选择存储卷">{{$select.selected.pvc}}</ui-select-match>
+                                        <ui-select-choices repeat="volume in volumeData[$index + 1]">
+                                            <div ng-bind-html="volume.pvc | highlight: $select.search"></div>
+                                        </ui-select-choices>
+                                    </ui-select>
+                                    <div class="error type-bottom" ng-messages="(createSecondFormValid ||createSecondForm['add_volume_'+$index].$dirty) && createSecondForm['add_volume_'+$index].$error">
+                                        <span class="error" ng-message="required">必填项</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="add-addition-volume">
+                            <div class="add-volume">
+                                <span ng-click="addVolume(createSecondForm)">
+                  <i class="icon-aw-add-to2"></i>添加附加存储卷</span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="create-train-third" ng-show="inStep=='3'">
+                <form name="createThirdForm" novalidate>
+                    <div class="control-group">
+                        <label class="control-label"><span class="red">*</span>训练时限(小时)：</label>
+                        <div class="controls train-time-controls clearFix">
+                            <change-num number="trainForm.tasktime" addnum="trainFormInfo.addNumber" pattern="trainFormInfo.cpuPattern" names="trainFormInfo.tasktimeName" createtrainform="createThirdForm" mydesc="trainFormInfo.cpuDesc"></change-num>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">训练启动方式：</label>
+                        <div class="controls">
+                            <div class="time-checkbox">
+                                <label>
+                                    <input type="radio" name="trainStartType" ng-model="trainForm.session_train_trigger_method" ng-checked="true" value="default">默认</label>
+                                <label>
+                                    <input type="radio" name="trainStartType" ng-model="trainForm.session_train_trigger_method" value="custom">自定义</label>
+                            </div>
+                            <div ng-if="trainForm.session_train_trigger_method == 'default'">
+                                <p class="startTypeTips">运行默认的Jupiter Notebook并等待用户触发训练。</p>
+                            </div>
+                            <div ng-if="trainForm.session_train_trigger_method == 'custom'">
+                                <div class="control-group">
+                                    <label class="command-control-label control-label">指令：</label>
+                                    <div class="controls clearFix">
+                                        <input class="form-controls" name="command" ng-model="trainForm.session_train_trigger_command" placeholder="请输入自定义指令" ng-maxlength="80" required>
+                                        <div class="error" ng-messages="(createThirdFormValid ||createThirdForm.command.$dirty) && createThirdForm.command.$error">
+                                            <span class="error" ng-message="required">必填项</span>
+                                            <span class="error" ng-message="maxlength">最大长度为80位</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label"></span>训练数据路径：</label>
+                        <div class="controls">
+                            <input class="form-controls" name="data_dir" ng-model="trainForm.data_dir" placeholder="请输入训练数据集路径" ng-maxlength="80"/>
+                            <div class="error" ng-messages="(createThirdFormValid ||createThirdForm.data_dir.$dirty) && createThirdForm.data_dir.$error">
+                                <span class="error" ng-message="maxlength">最大长度为80位</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label"></span>训练日志路径：</label>
+                        <div class="controls">
+                            <input class="form-controls" name="log_dir" ng-model="trainForm.log_dir" placeholder="请输入训练日志保存路径" ng-maxlength="80"/>
+                            <div class="error" ng-messages="(createThirdFormValid ||createThirdForm.log_dir.$dirty) && createThirdForm.log_dir.$error">
+                                <span class="error" ng-message="maxlength">最大长度为80位</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label"></span>训练模型路径：</label>
+                        <div class="controls">
+                            <input class="form-controls" name="model_dir" ng-model="trainForm.model_dir" placeholder="请输入训练模型保存路径" ng-maxlength="80"/>
+                            <div class="error" ng-messages="(createThirdFormValid ||createThirdForm.model_dir.$dirty) && createThirdForm.model_dir.$error">
+                                <span class="error" ng-message="maxlength">最大长度为80位</span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="create-train-fourth" ng-show="inStep=='4'">
+                <form name="createFourthForm" novalidate>
+                    <div class="prompt-message">
+                        超参数是训练任务算法需要的参数信息，支持用户自定义,超参数名称需要和实际的训练算法代码中使用的名称一致
+                        定义的超参数会以环境变量的形式写入集群中
+                        比如定义超参数batch_size，则在算法模型代码中可以直接通过如下方式访问：
+                        <p>shell：$batch_size</p>
+                        <p>python：os.environ.get("batch_size")</p>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">超参数：</label>
+                        <div class="controls params-controls" ng-repeat="item in trainForm.params">
+                            <div class="params-title">
+                                <p>超参数{{$index + 1}}</p>
+                                <span ng-click="removeModel(trainForm.params,$index,'params')" ng-if="$index && !item.canChangeName">
+                  <i class="icon-aw-wrong"></i>
+                </span>
+                            </div>
+                            <div class="control-group">
+                                <label class="params-control-label control-label">名称：</label>
+                                <div class="controls params-control-input clearFix">
+                                    <input class="form-controls" name="name_{{$index}}" ng-model="item.name" placeholder="请输入超参数名称" ng-minlength="6" ng-maxlength="32" ng-pattern="/^[a-zA-Z][a-zA-Z0-9_\-]*[a-zA-Z]$/" ng-disabled="item.canChangeName" />
+                                    <div class="error" ng-messages="(createFourthFormValid ||createFourthForm['name_'+$index].$dirty) && createFourthForm['name_'+$index].$error">
+                                        <span class="error" ng-message="pattern">只能输入字母、数字、横线和下划线，且首尾为字母</span>
+                                        <span class="error" ng-message="required">必填项</span>
+                                        <span class="error" ng-message="minlength">最小长度为6位</span>
+                                        <span class="error" ng-message="maxlength">最大长度为32位</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="params-control-label control-label">值：</label>
+                                <div class="controls params-control-input clearFix">
+                                    <input class="form-controls" name="value_{{$index}}" ng-model="item.value" ng-pattern='item.pattern' placeholder="请输入超参数值" ng-maxlength="32">
+                                    <div class="error" ng-messages="(createFourthFormValid ||createFourthForm['value_'+$index].$dirty) && createFourthForm['value_'+$index].$error">
+                                        <span class="error" ng-message="pattern">{{item.paramsDesc}}</span>
+                                        <span class="error" ng-message="required">必填项</span>
+                                        <span class="error" ng-message="maxlength">最大长度为32位</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="train-add-params">
+                            <div class="train-add-type">
+                                <span ng-click="addParams(createFourthForm)">
+                  <i class="icon-aw-add-to2"></i>添加超参数{{showParamsPrompt}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="create-train-fifth" ng-show="inStep=='5'">
+                <div class="control-group">
+                    <label class="control-label">任务名称：</label>
+                    <div class="controls">
+                        <p>{{trainForm.taskname}}</p>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">引擎选择：</label>
+                    <div class="controls">
+                        <p>{{trainForm.session_train_engine}}</p>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">session：</label>
+                    <div class="controls">
+                        <table class="type-table type-show-table">
+                            <tr class="clearFix">
+                                <td width="30%">
+                                    <span ng-if="trainForm.session_cputype" title="{{trainForm.session_cputype}}">{{trainForm.session_cputype}}</span>
+                                    <span ng-if="trainForm.session_gputype" title="{{trainForm.session_gputype}}">{{trainForm.session_gputype}}</span>
+                                </td>
+                                <td width="20%" title="{{trainForm.session_cpu_num+'核CPU'}}">{{trainForm.session_cpu_num}}核CPU</td>
+                                <td width="20%" ng-if="trainForm.session_gputype" title="{{trainForm.session_nvidiagpu_num+'核GPU'}}">{{trainForm.session_nvidiagpu_num}}核GPU</td>
+                                <td width="30%" title="{{trainForm.session_memory_num + 'GB内存'}}">{{trainForm.session_memory_num}}GB内存</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="control-group" ng-if="trainForm.resource_groups.length">
+                    <label class="control-label">资源组：</label>
+                    <div class="controls">
+                        <table class="type-table type-show-table">
+                            <tr class="clearFix" ng-repeat="item in trainForm.resource_groups">
+                                <td width="30%">
+                                    <span ng-if="!!item.gputype" title="{{item.gputype}}">{{item.gputype}}</span>
+                                    <span ng-if="!item.gputype" title="{{item.cputype}}">{{item.cputype}}</span>
+                                </td>
+                                <td width="10%" title="{{item.replica+'台'}}">{{item.replica}}台</td>
+                                <td width="25%">
+                                    <span ng-if="!!item.gputype" title="{{item.nvidiagpu+'核GPU'}}">{{item.nvidiagpu}}核GPU</span>
+                                    <span title="{{item.cpu+'核CPU'}}">{{item.cpu}}核CPU</span>
+                                </td>
+                                <td width="15%" title="{{item.memory + 'GB内存'}}">{{item.memory}}GB内存</td>
+                                <td width="20%" title="{{item.name}}">{{item.name}}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">存储卷：</label>
+                    <div class="controls volume-details">
+                        <p class="clearFix">
+                            <span ng-repeat="item in trainForm.volume_groups track by $index">{{item.pvc}}</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">训练时限：</label>
+                    <div class="controls">
+                        <p>{{trainForm.tasktime}}</p>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">训练启动方式：</label>
+                    <div class="controls">
+                        <p ng-if="trainForm.session_train_trigger_method == 'default'">默认</p>
+                        <p ng-if="trainForm.session_train_trigger_method == 'custom'">自定义</p>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">数据路径：</label>
+                    <div class="controls">
+                        <p>{{trainForm.data_dir}}</p>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">日志路径：</label>
+                    <div class="controls">
+                        <p>{{trainForm.log_dir}}</p>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">模型路径：</label>
+                    <div class="controls">
+                        <p>{{trainForm.model_dir}}</p>
+                    </div>
+                </div>
+                <div class="control-group" ng-if="trainForm.params.length">
+                    <label class="control-label">超参数：</label>
+                    <div class="controls">
+                        <div class="params-details" ng-repeat="item in trainForm.params track by $index">
+                            <span title="{{item.name}}">{{item.name}}</span>
+                            <span title="{{item.value}}">{{item.value}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">数据集：</label>
+                    <div class="controls">
+                        <p ng-repeat="item in dataSetList">{{item.name}}：{{item.mountCatalog}}</p>
+                    </div>
+                </div>
+            </div>
+            <div ng-if="resourceNameRepeat" class="mxnet-error-prompt">
+                <span class="error">请勿输入相同的资源标签名，修改后重试</span>
+            </div>
+        </div>
+        <div class="modal-footer train-modal-footer">
+            <div ng-show="inStep=='1'">
+                <div ng-if="firstStepQuota">
+                    <div class="error" ng-if="createQuota.cpuOverQuota">CPU超过配额，请修改后重试</div>
+                    <div class="error" ng-if="createQuota.gpuOverQuota">GPU超过配额，请修改后重试</div>
+                    <div class="error" ng-if="createQuota.memoryOverQuota">内存超过配额，请修改后重试</div>
+                    <div class="error" ng-if="createQuota.sameCataLog">数据集路径不可重名，请修改后重试</div>
+                </div>
+                <button class="btn btn-info" type="button" ng-click="stepTo(createFirstForm)">下一步</button>
+                <button class="btn btn-default" type="button" ng-click="$dismiss()">取消</button>
+            </div>
+            <div ng-show="inStep=='2'">
+                <button class="btn btn-default" type="button" ng-click="stepBack()">上一步</button>
+                <button class="btn btn-info" type="button" ng-click="stepTo(createSecondForm)">下一步</button>
+                <button class="btn btn-default" type="button" ng-click="$dismiss()">取消</button>
+            </div>
+            <div ng-show="inStep=='3'">
+                <button class="btn btn-default" type="button" ng-click="stepBack()">上一步</button>
+                <button class="btn btn-info" type="button" ng-click="stepTo(createThirdForm)">下一步</button>
+                <button class="btn btn-default" type="button" ng-click="$dismiss()">取消</button>
+            </div>
+            <div ng-show="inStep=='4'">
+                <div ng-if="confirmMxnetParams" class="mxnet-error-prompt">
+                    <span class="error">请将超参数1和超参数2输入完整,修改后重试</span>
+                </div>
+                <div ng-if="confirmParamsName" class="mxnet-error-prompt">
+                    <span class="error">请勿输入相同的超参数名,修改后重试</span>
+                </div>
+                <button class="btn btn-default" type="button" ng-click="stepBack()">上一步</button>
+                <button class="btn btn-info" type="button" ng-click="stepTo(createFourthForm)">下一步</button>
+                <button class="btn btn-default" type="button" ng-click="$dismiss()">取消</button>
+            </div>
+            <div ng-show="inStep=='5'">
+                <button class="btn btn-default" type="button" ng-click="stepBack()">上一步</button>
+                <button class="btn btn-info" type="button" ng-click="createConfirm(trainForm)">新建</button>
+                <button class="btn btn-default" type="button" ng-click="$dismiss()">取消</button>
+            </div>
+        </div>
+    </div>
+</script>
+<script type="text/ng-template" id="editTrainModel.html">
+    <div class="modal-common">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="$dismiss()">×</button>
+            <h3 class="modal-title">编辑超参数</h3>
+        </div>
+        <div class="modal-body edit-params-body">
+            <form name="editParamsFrom" novalidate>
+                <div class="control-group">
+                    <label class="control-label">超参数：</label>
+                    <div class="controls params-controls" ng-repeat="item in paramsData">
+                        <div class="params-title">
+                            <p>超参数{{$index + 1}}</p>
+                            <span ng-click="removeParams($index)" ng-if="!item.canChangeName">
+                <i class="icon-aw-wrong"></i>
+              </span>
+                        </div>
+                        <div class="control-group">
+                            <label class="params-control-label control-label">名称：</label>
+                            <div class="controls clearFix">
+                                <input class="form-controls" name="name_{{$index}}" ng-model="item.name" placeholder="请输入超参数名称" ng-minlength="6" ng-maxlength="32" required ng-pattern="/^[a-zA-Z][a-zA-Z0-9_\-]*[a-zA-Z]$/" ng-disabled="item.canChangeName" />
+                                <div class="error" ng-messages="(editParamsFromValid || editParamsFrom['name_'+$index].$dirty) && editParamsFrom['name_'+$index].$error">
+                                    <span class="error" ng-message="pattern">只能输入字母、数字和横线，且首尾为字母</span>
+                                    <span class="error" ng-message="required">必填项</span>
+                                    <span class="error" ng-message="minlength">最小长度为6位</span>
+                                    <span class="error" ng-message="maxlength">最大长度为32位</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="params-control-label control-label">值：</label>
+                            <div class="controls clearFix">
+                                <input class="form-controls" name="value_{{$index}}" ng-model="item.value" ng-pattern="item.pattern" placeholder="请输入超参数值" required ng-maxlength="32" />
+                                <div class="error" ng-messages="(editParamsFromValid || editParamsFrom['value_'+$index].$dirty) && editParamsFrom['value_'+$index].$error">
+                                    <span class="error" ng-message="required">必填项</span>
+                                    <span class="error" ng-message="maxlength">最大长度为32位</span>
+                                    <span class="error" ng-message="pattern">{{item.paramsDesc}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="train-add-params">
+                        <div class="train-add-type">
+                            <span ng-click="addParams()">
+                <i class="icon-aw-add-to2"></i>添加超参数</span>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="mxnet-error-prompt" ng-show="confirmEditParamsName">
+                <span class="error">请勿输入相同的超参数名，请修改后重试</span>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-info" ng-click="editConfirm(editParamsFrom)">确定</button>
+            <button type="button" class="btn btn-default" ng-click="$dismiss()">取消</button>
+        </div>
+    </div>
+</script>
+<script type="text/ng-template" id="editTempTrainModel.html">
+    <div class="modal-common">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="$dismiss()">×</button>
+            <h3 class="modal-title">编辑超参数</h3>
+        </div>
+        <div class="modal-body edit-params-body clearFix">
+            <form name="editParamsFrom" class="edit-params" novalidate>
+                <div class="control-group" ng-repeat="item in paramsData track by $index">
+                    <label class="control-label">{{item.name}}：</label>
+                    <div class="controls">
+                        <input type="text" class="form-controls" name="{{item.name}}" id="{{paramsPattern[$index].id}}" ng-model="item.value" ng-pattern="paramsPattern[$index].pattern" ng-required="paramsPattern[$index].isRequired"/>
+                        <div class="error" ng-messages="(editParamsFromValid ||editParamsFrom[item.name].$dirty) && editParamsFrom[item.name].$error">
+                            <span class="error" ng-message="required">必填项</span>
+                            <span class="error" ng-message="pattern">{{paramsPattern[$index].patternInfo}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="params-error" ng-if="overStep">
+                    <span class="error">eval_step的值不能大于steps的值</span>
+                </div>
+            </form>
+            <div class="params-info" ng-if="taskname=='tf-mnist-cnn-cpu'">
+                <p>一次性训练的图片数量， 默认200</p>
+                <p>基准学习率，默认值0.005</p>
+                <p>学习率衰减指数，默认值0.99</p>
+                <p>训练的正则化指数, 默认值0.0001</p>
+                <p>训练的次数，默认10000</p>
+                <p class="params-last-container">每隔多少次训练，输出部分训练结果，默认1000，但是不能大于steps</p>
+            </div>
+            <div class="params-info" ng-if="taskname=='tf-lstm-wordpredict'">
+                <p>RNN隐藏状态个数，默认256</p>
+                <p>RNN 层数，默认2</p>
+                <p>一次填入单词个数，默认50</p>
+                <p>默认1000</p>
+                <p>学习效率，默认0.002</p>
+                <p>rmsprop衰减率，默认0.97</p>
+            </div>
+            <div class="params-info" ng-if="taskname=='tensorflow-flower'">
+                <p>训练结束前运行的训练步数</p>
+                <p>训练时使用的学习率大小</p>
+                <p>训练结果评估的步数间隔</p>
+                <p>一次训练的图像的数量</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-info" ng-click="editConfirm(editParamsFrom)">确定</button>
+            <button type="button" class="btn btn-default" ng-click="$dismiss()">取消</button>
+        </div>
+    </div>
+</script>
+<script type="text/ng-template" id="relaseModel.html">
+    <div class="modal-common">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="$dismiss()">×</button>
+            <h3 class="modal-title  clearfix">发布模型</h3>
+        </div>
+        <div class="modal-body">
+            <form name="createmodelForm" class="model-form" novalidate>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>配置：</label>
+                    <div class="controls">
+                        <div class="create-train-type">
+                            <div class="type-content session-content">
+                                <ui-select ng-model="modelForm.session_cputype" name="sessionCputype" required>
+                                    <ui-select-match placeholder="请选择机型">{{$select.selected.name}}</ui-select-match>
+                                    <ui-select-choices repeat="type in caffeTypeData">
+                                        <div ng-bind-html="type.name | highlight: $select.search"></div>
+                                    </ui-select-choices>
+                                </ui-select>
+                                <div class="error type-bottom" ng-messages="(createmodelFormValid ||createmodelForm.sessionCputype.$dirty) && createmodelForm.sessionCputype.$error">
+                                    <span class="error" ng-message="required">必填项</span>
+                                </div>
+                                <div class="control-group">
+                                    <label class="type-control-label">每台CPU数量(核)：</label>
+                                    <div class="controls clearFix type-control">
+                                        <change-num number="modelForm.session_cpu_num" addnum="modelFormInfo.addNumber" pattern="modelFormInfo.cpuPattern" names="modelFormInfo.cpuName" createtrainform="createmodelForm" mydesc="modelFormInfo.cpuDesc"></change-num>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label class="type-control-label">每台内存大小(GB)：</label>
+                                    <div class="controls clearFix type-control">
+                                        <change-num number="modelForm.session_memory_num" addnum="modelFormInfo.memoryAddNumber" pattern="modelFormInfo.memoryPattern" names="modelFormInfo.memoryName" createtrainform="createmodelForm" mydesc="modelFormInfo.memoryDesc"></change-num>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label class="type-control-label">副本数：</label>
+                                    <div class="controls clearFix type-control">
+                                        <change-num number="modelForm.replicas" addnum="modelFormInfo.memoryAddNumber" pattern="modelFormInfo.memoryPattern" names="modelFormInfo.replicasName" createtrainform="createmodelForm" mydesc="modelFormInfo.memoryDesc"></change-num>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div ng-if="overQuota" class="model-quota-tip">
+                <div ng-if="cpuOverQuota" class="error">CPU超过配额，请修改后重试</div>
+                <!-- <div class="error" ng-if="createQuota.gpuOverQuota">GPU超过配额，请修改后重试</div> -->
+                <div ng-if="memoryOverQuota" class="error">内存超过配额，请修改后重试</div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-info" type="button" ng-click="confirm(createmodelForm)">{{"cn.action.ok"|translate}}</button>
+            <button class="btn btn-default" type="button" ng-click="$dismiss()">{{"cn.action.cancel"|translate}}</button>
+        </div>
+    </div>
+</script>

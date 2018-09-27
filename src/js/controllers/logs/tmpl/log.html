@@ -1,0 +1,120 @@
+<div class="page-inner log">
+    <div class="table-action">
+        <form name="logFilter_form" class="date-box">
+            <div class="col-flow project-select">
+                <ui-select ng-model="project.selected" ng-change="changeSearch(project.selected)" ng-disabled="isDisabled">
+                    <ui-select-match placeholder='选择项目'>
+                        {{$select.selected.name}}
+                    </ui-select-match>
+                    <ui-select-choices repeat="item in projectList">
+                        <div title="{{item.name}}" ng-bind-html="item.name | highlight: $select.search"></div>
+                    </ui-select-choices>
+                </ui-select>
+            </div>
+            <div class="col-flow node-select">
+                <ui-select ng-model="node.selected" ng-change="changeSearch(node.selected)" ng-disabled="isDisabled">
+                    <ui-select-match placeholder='选择主机'>
+                        {{$select.selected.spec.externalID}}
+                    </ui-select-match>
+                    <ui-select-choices repeat="item in nodeList">
+                        <div title="{{item.spec.externalID}}" ng-bind-html="item.spec.externalID | highlight: $select.search"></div>
+                    </ui-select-choices>
+                </ui-select>
+            </div>
+            <div class="col-flow task-select">
+                <ui-select ng-model="task.selected" ng-change="taskChange('model',task.selected)" ng-disabled="isDisabled">
+                    <ui-select-match placeholder='训练任务'>
+                        {{$select.selected.name}}
+                    </ui-select-match>
+                    <ui-select-choices repeat="item in taskList">
+                        <div title="{{item.name}}" ng-bind-html="item.name | highlight: $select.search"></div>
+                    </ui-select-choices>
+                </ui-select>
+            </div>
+            <div class="col-flow task-select">
+                <ui-select ng-model="model.selected" ng-change="taskChange('task',model.selected)" ng-disabled="isDisabled">
+                    <ui-select-match placeholder='模型名称'>
+                        {{$select.selected.name}}
+                    </ui-select-match>
+                    <ui-select-choices repeat="item in modelList">
+                        <div title="{{item.name}}" ng-bind-html="item.name | highlight: $select.search"></div>
+                    </ui-select-choices>
+                </ui-select>
+            </div>
+            <div class="col-flow project-select">
+                <input type="text" placeholder="请输入关键字" class="form-control" ng-model="filterData.log">
+            </div>
+            <div class="time-picker">
+                <div class="form-group start">
+                    <div class="input-group date form_date">
+                        <input class="form-control fromTime" name="startTime" type="text" size="16" ng-model="filterData.starttime" placeholder="{{'cn.log.start_at'|translate}}" ng-pattern="/^\d{4}-([0][1-9]|[1][0-2])-([0-2][1-9]|[1-2][0]|[3][0-1])$/" gt-time>
+                        <span class="input-group-addon calendar-cont">
+              <span class="glyphicon glyphicon-calendar fa fa-calendar"></span>
+                        </span>
+                    </div>
+                    <div class="error" ng-messages="logFilter_form.startTime.$error">
+                        <div ng-message="pattern">{{"cn.errors.timePattern"|translate}}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="time-picker">
+                <div class="form-group end">
+                    <div class="input-group date form_date">
+                        <input class="form-control endTime" name="endTime" type="text" size="16" ng-model="filterData.endtime" placeholder="{{'cn.log.end_at'|translate}}" ng-pattern="/^\d{4}-([0][1-9]|[1][0-2])-([0-2][1-9]|[1-2][0]|[3][0-1])$/" gt-time>
+                        <span class="input-group-addon calendar-cont">
+              <span class="glyphicon glyphicon-calendar fa fa-calendar"></span>
+                        </span>
+                    </div>
+                    <div class="error" ng-messages="logFilter_form.endTime.$error">
+                        <div ng-message="pattern">{{"cn.errors.timePattern"|translate}}</div>
+                        <div ng-message="gtTime">{{"cn.errors.gtTime"|translate}}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="pull-left button-item">
+                <button type="button" class="btn btn-default" ng-click="searchLog('form')">
+                    <i class="icon-aw-search"></i> 查询</button>
+                <button type="button" class="btn btn-default" ng-click="searchLog('refresh')">重置</button>
+            </div>
+            <setting class="pull-right" title-data="titleData" site-title="titleName" table-data="tableData"></setting>
+        </form>
+    </div>
+    <div class="table-content">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th width="10%" ng-if="titleData[0].value">{{"cn.log.namespace"|translate}}</th>
+                    <th width="5%" ng-if="titleData[1].value">{{"cn.log.containerName"|translate}}</th>
+                    <th width="15%" ng-if="titleData[2].value">{{"cn.log.podName"|translate}}</th>
+                    <th width="10%" ng-if="titleData[3].value">{{"cn.log.taskname"|translate}}</th>
+                    <th width="10%" ng-if="titleData[4].value">{{"cn.log.modelname"|translate}}</th>
+                    <th width="10%" ng-if="titleData[5].value">{{"cn.log.jobName"|translate}}</th>
+                    <th width="10%" ng-if="titleData[6].value">{{"cn.log.hostName"|translate}}</th>
+                    <th width="30%" ng-if="titleData[7].value">{{"cn.log.detail"|translate}}</th>
+                    <th width="10%" ng-if="titleData[8].value">{{"cn.log.time"|translate}}</th>
+                </tr>
+            </thead>
+            <tr ng-repeat="item in logsTable">
+                <td ng-if="titleData[0].value">{{item.namespace}}</td>
+                <td ng-if="titleData[1].value">{{item.containerName}}</td>
+                <td ng-if="titleData[2].value">{{item.podName}}</td>
+                <td ng-if="titleData[3].value">{{item.taskname}}</td>
+                <td ng-if="titleData[4].value">{{item.modelname}}</td>
+                <td ng-if="titleData[5].value">{{item.jobName}}</td>
+                <td ng-if="titleData[6].value">{{item.host}}</td>
+                <td ng-if="titleData[7].value"><span class="word-break">{{item.log}}</span></td>
+                <td ng-if="titleData[8].value">{{item.timestamp|date:"yyyy-MM-dd HH:mm:ss"}}</td>
+            </tr>
+        </table>
+        <div ng-show="logsTable.length == 0 && loadData" id="tip-msg">{{"cn.common.empty"|translate}}</div>
+        <div ng-show="!loadData">{{"cn.common.loading"|translate}}</div>
+        <div class="text-right" ng-if="showPage">
+            <div class="page-wrap">
+                <!-- <a class="first-page" ng-click="goToPage('1')">{{'cn.log.fontPage'|translate}}</a> -->
+                <!-- <ul class="pagination clearfix" id="pageNum"></ul> -->
+                <page-log pages="pages" logfun="initLogsTable(fun)" filter-data="filterData" formatperams="formatPerams(option)"></page-log>
+                <!-- <a class="last-page" ng-click="goToPage(pages)">{{'cn.log.endPage'|translate}}</a> -->
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,261 @@
+<div class="page-inner editUser-modal monitor-view monitor-ui" >
+    <div class="tab-box">
+        <ul class="nav nav-tabs nav-justified">
+            <li ng-class="{active:showMonitorPage==1}" class="uib-tab nav-item ng-scope ng-isolate-scope" ng-click="changeMonitorType(1)">
+                <a>{{'cn.monitor.res_monitor' | translate}}</a>
+            </li>
+            <li ng-class="{active:showMonitorPage==2}" class="uib-tab nav-item ng-scope ng-isolate-scope" ng-click="changeMonitorType(2)">
+                <a>{{'cn.monitor.host_monitor' | translate}}</a>
+            </li>
+            <li ng-class="{active:showMonitorPage==3}" class="uib-tab nav-item ng-scope ng-isolate-scope" ng-click="changeMonitorType(3)">
+                <a>{{'cn.monitor.pro_monitor' | translate}}</a>
+            </li>
+            <li ng-class="{active:showMonitorPage==4}" class="uib-tab nav-item ng-scope ng-isolate-scope" ng-click="changeMonitorType(4)">
+                <a>{{'cn.monitor.res_save_monitor' | translate}}</a>
+            </li>
+        </ul>
+    
+        <div class="tab-content">
+            <div ng-if="showMonitorPage==1">
+                <div class="monitor-btn-group">
+                    <ul class="time-btn-list" >
+                        <li ng-class="{'active':activeFlag == '1h'}" ng-click="changeDataByTime('1h','300')">{{'cn.monitor.time_1h' | translate}}</li>
+                        <li ng-class="{'active':activeFlag == '12h'}" ng-click="changeDataByTime('12h','3600')">{{'cn.monitor.time_12h' | translate}}</li>
+                        <li ng-class="{'active':activeFlag == '1d'}" ng-click="changeDataByTime('1d','7200')">{{'cn.monitor.time_1day' | translate}}</li>
+                        <li ng-class="{'active':activeFlag == '7d'}" ng-click="changeDataByTime('7d','86400')">{{'cn.monitor.time_1week' | translate}}</li>
+                    </ul>
+                </div>
+                <div class="col-12">
+                    <div class="box layout-grid areaChart">
+                        <div class="col-6 monitor-padding" ng-repeat="item in resInfo">
+                            <div class="inner">
+                                <div class="no-data" ng-if="!item.showNoData">{{'cn.monitor.empty_data' | translate}}</div>
+                                <monitor-area-stack chart-title="item.title" data="item.data"></monitor-area-stack>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div ng-if="showMonitorPage==2">
+                <div class="monitor-btn-group">
+                    <div class="status-list">
+                        <div class="control-group">
+                            <label class="control-label">IP：</label>
+                            <div class="controls">
+                                <ui-select ng-model="nodeName" ng-change="choiceNode(nodeName)" >
+                                    <ui-select-match placeholder='{{"cn.hostmanage.statusListplaceholderSearch"|translate}}'>
+                                        {{$select.selected.name}}
+                                    </ui-select-match>
+                                    <ui-select-choices repeat="nodeName in nodeLise">
+                                        <div ng-bind-html="nodeName.name | highlight: $select.search"></div>
+                                    </ui-select-choices>
+                                </ui-select>
+                            </div>
+                        </div>
+                    </div>
+                    <ul class="time-btn-list">
+                        <li ng-class="{'active':hostActiveFlag == '1h'}" ng-click="changeHostInfo('1h','300')">{{'cn.monitor.time_1h' | translate}}</li>
+                        <li ng-class="{'active':hostActiveFlag == '12h'}" ng-click="changeHostInfo('12h','3600')">{{'cn.monitor.time_12h' | translate}}</li>
+                        <li ng-class="{'active':hostActiveFlag == '1d'}" ng-click="changeHostInfo('1d','7200')">{{'cn.monitor.time_1day' | translate}}</li>
+                        <li ng-class="{'active':hostActiveFlag == '7d'}" ng-click="changeHostInfo('7d','86400')">{{'cn.monitor.time_1week' | translate}}</li>
+                    </ul>
+                </div>
+                <div class="col-12">
+                    <div class="box layout-grid areaChart">
+                        <div class="col-6" ng-repeat="item in hostInfo">
+                            <div class="inner">
+                                <div class="no-data" ng-if="!item.showNoData">{{'cn.monitor.empty_data' | translate}}</div>                                    
+                                <monitor-area-stack chart-title="item.title" data="item.data"></monitor-area-stack>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div ng-if="showMonitorPage==3">
+                <div class="monitor-btn-group">
+                    <div class="status-list pro-check-info">
+                        <div class="control-group">
+                            <label class="control-label">{{'cn.monitor.pro_name' | translate}}</label>
+                            <div class="controls">
+                                <ui-select ng-model="proName" ng-change="choicePro(proName)" >
+                                    <ui-select-match placeholder='{{"cn.hostmanage.statusListplaceholderSearch"|translate}}'>
+                                        {{$select.selected.name}}
+                                    </ui-select-match>
+                                    <ui-select-choices repeat="project in projectLise">
+                                        <div ng-bind-html="project.name | highlight: $select.search"></div>
+                                    </ui-select-choices>
+                                </ui-select>
+                            </div>
+                        </div>
+                    </div>
+                    <ul class="time-btn-list">
+                        <li ng-class="{'active':proActiveFlag == '1h'}" ng-click="changeProInfo('1h','300')">{{'cn.monitor.time_1h' | translate}}</li>
+                        <li ng-class="{'active':proActiveFlag == '12h'}" ng-click="changeProInfo('12h','3600')">{{'cn.monitor.time_12h' | translate}}</li>
+                        <li ng-class="{'active':proActiveFlag == '1d'}" ng-click="changeProInfo('1d','7200')">{{'cn.monitor.time_1day' | translate}}</li>
+                        <li ng-class="{'active':proActiveFlag == '7d'}" ng-click="changeProInfo('7d','86400')">{{'cn.monitor.time_1week' | translate}}</li>
+                    </ul>
+                </div>
+                <div class="col-12">
+                    <div class="box layout-grid areaChart">
+                        <div class="col-6" ng-repeat="item in proInfo">
+                            <div class="inner">
+                                <div class="no-data" ng-if="!item.showNoData">{{'cn.monitor.empty_data' | translate}}</div>
+                                <monitor-area-stack chart-title="item.title" data="item.data"></monitor-area-stack>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div ng-if="showMonitorPage==4">
+                <div class="monitor-btn-group">
+                    <ul class="time-btn-list">
+                        <li ng-class="{'active':volActiveFlag == '1h'}" ng-click="changeVolInfo('1h','300')">最近1小时</li>
+                        <li ng-class="{'active':volActiveFlag == '12h'}" ng-click="changeVolInfo('12h','3600')">最近12小时</li>
+                        <li ng-class="{'active':volActiveFlag == '1d'}" ng-click="changeVolInfo('1d','7200')">最近1天</li>
+                        <li ng-class="{'active':volActiveFlag == '7d'}" ng-click="changeVolInfo('7d','86400')">最近1周</li>
+                    </ul>
+                </div>
+                <div class="col-12">
+                    <div class="box layout-grid areaChart">
+                        <div class="col-12" ng-repeat="item in volInfo">
+                            <div class="inner">
+                                <div class="no-data" ng-if="!item.showNoData">暂无数据</div>                                    
+                                <monitor-area-stack chart-title="item.title" data="item.data"></monitor-area-stack>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>        
+</div>
+
+<!-- <div>
+    <ul class="nav nav-tabs nav-justified">
+        <li ng-class="{active:showNewTitle}" class="uib-tab nav-item ng-scope ng-isolate-scope" ng-click="getLeftListData(1)">
+            <a href="">资源监控</a>
+        </li>
+        <li ng-class="{active:!showNewTitle}" class="uib-tab nav-item ng-scope ng-isolate-scope" ng-click="getLeftListData(2)">
+            <a href="">主机监控</a>
+        </li>
+    </ul>
+</div>
+
+<div ng-if="showNewTitle">
+    <div class="monitor-btn-group">
+        <ul>
+            <li ng-class="{'active':activeFlag == '1h'}" ng-click="changeDataByTime('1h')">最近1小时</li>
+            <li ng-class="{'active':activeFlag == '12h'}" ng-click="changeDataByTime('12h')">最近12小时</li>
+            <li ng-class="{'active':activeFlag == '1day'}" ng-click="changeDataByTime('1day')">最近1天</li>
+            <li ng-class="{'active':activeFlag == '1week'}" ng-click="changeDataByTime('1week')">最近1周</li>
+        </ul>
+    </div>
+    <div class="col-12">
+        <div class="box layout-grid areaChart">
+            <div class="col-6" ng-repeat="item in resInfo">
+                <div class="inner">
+                    <monitor-area-stack chart-title="item.title" data="item.data"></monitor-area-stack>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div ng-if="!showNewTitle">
+    <div class="monitor-btn-group">
+        <div class="status-list">
+            <div class="control-group">
+                <label class="control-label">IP：</label>
+                <div class="controls">
+                    <ui-select ng-model="nodeName.name" ng-change="choiceNode(nodeName.name)" >
+                        <ui-select-match placeholder='{{"cn.hostmanage.statusListplaceholderSearch"|translate}}'>
+                            {{$select.selected.name}}
+                        </ui-select-match>
+                        <ui-select-choices repeat="nodeName in nodeLise">
+                            <div ng-bind-html="nodeName.name | highlight: $select.search"></div>
+                        </ui-select-choices>
+                    </ui-select>
+                </div>
+            </div>
+        </div>
+        <ul>
+            <li ng-class="{'active':hostActiveFlag == '1h'}" ng-click="changeHostInfo('1h')">最近1小时</li>
+            <li ng-class="{'active':hostActiveFlag == '12h'}" ng-click="changeHostInfo('12h')">最近12小时</li>
+            <li ng-class="{'active':hostActiveFlag == '1day'}" ng-click="changeHostInfo('1day')">最近1天</li>
+            <li ng-class="{'active':hostActiveFlag == '1week'}" ng-click="changeHostInfo('1week')">最近1周</li>
+        </ul>
+    </div>
+    <div class="col-12">
+        <div class="box layout-grid areaChart">
+            <div class="col-6" ng-repeat="item in hostInfo">
+                <div class="inner">
+                    <monitor-area-stack chart-title="item.title" data="item.data"></monitor-area-stack>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> -->
+
+
+<!-- 
+<div class="page-inner editUser-modal monitor-view">
+    <uib-tabset active=tabActive justified="true">
+        <uib-tab index="1" heading="资源监控">
+            <div class="monitor-btn-group">
+                <ul>
+                    <li ng-class="{'active':activeFlag == '1h'}" ng-click="changeDataByTime('1h')">最近1小时</li>
+                    <li ng-class="{'active':activeFlag == '12h'}" ng-click="changeDataByTime('12h')">最近12小时</li>
+                    <li ng-class="{'active':activeFlag == '1day'}" ng-click="changeDataByTime('1day')">最近1天</li>
+                    <li ng-class="{'active':activeFlag == '1week'}" ng-click="changeDataByTime('1week')">最近1周</li>
+                </ul>
+            </div>
+            <div class="col-12">
+                <div class="box layout-grid areaChart">
+                    <div class="col-6" ng-repeat="item in resInfo">
+                        <div class="inner">
+                            <monitor-area-stack chart-title="item.title" data="item.data"></monitor-area-stack>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </uib-tab>
+        <uib-tab index="2" heading="主机监控">
+            <div class="monitor-btn-group">
+                <div class="status-list">
+                    <div class="control-group">
+                        <label class="control-label">IP：</label>
+                        <div class="controls">
+                            <ui-select ng-model="nodeName.name" ng-change="choiceNode(nodeName.name)" >
+                                <ui-select-match placeholder='{{"cn.hostmanage.statusListplaceholderSearch"|translate}}'>
+                                    {{$select.selected.name}}
+                                </ui-select-match>
+                                <ui-select-choices repeat="nodeName in nodeLise">
+                                    <div ng-bind-html="nodeName.name | highlight: $select.search"></div>
+                                </ui-select-choices>
+                            </ui-select>
+                        </div>
+                    </div>
+                </div>
+                <ul>
+                    <li ng-class="{'active':hostActiveFlag == '1h'}" ng-click="changeHostInfo('1h')">最近1小时</li>
+                    <li ng-class="{'active':hostActiveFlag == '12h'}" ng-click="changeHostInfo('12h')">最近12小时</li>
+                    <li ng-class="{'active':hostActiveFlag == '1day'}" ng-click="changeHostInfo('1day')">最近1天</li>
+                    <li ng-class="{'active':hostActiveFlag == '1week'}" ng-click="changeHostInfo('1week')">最近1周</li>
+                </ul>
+            </div>
+            <div class="col-12">
+                <div class="box layout-grid areaChart">
+                    <div class="col-6" ng-repeat="item in hostInfo">
+                        <div class="inner">
+                            <monitor-area-stack chart-title="item.title" data="item.data"></monitor-area-stack>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </uib-tab>
+    </uib-tabset>
+</div> -->

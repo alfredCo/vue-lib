@@ -1,0 +1,365 @@
+<div class="page-inner temp-train no-bg">
+    <ul class="img-list">
+        <li>
+            <div class="inner">
+                <div class="img-box">
+                    <img src="/images/content/u219.png">
+                </div>
+                <div class="text-box">
+                    <i class="icon-aw-bz" ng-click="getDetail('CNN')"></i>
+                    <span class="name">手写数字识别</span>
+                    <button class="btn btn-info" ng-click="createTrain('CNN')">开始训练</button>
+                </div>
+            </div>
+        </li>
+        <li>
+            <div class="inner">
+                <div class="img-box">
+                    <img src="/images/content/u219.png">
+                </div>
+                <div class="text-box">
+                    <i class="icon-aw-bz" ng-click="getDetail('LETTER')"></i>
+                    <span class="name">单词预测</span>
+                    <button class="btn btn-info" ng-click="createTrain('LETTER')">开始训练</button>
+                </div>
+            </div>
+        </li>
+        <li>
+            <div class="inner">
+                <div class="img-box">
+                    <img src="/images/content/u219.png">
+                </div>
+                <div class="text-box">
+                    <i class="icon-aw-bz" ng-click="getDetail('IMAGE')"></i>
+                    <span class="name">花朵图像识别</span>
+                    <button class="btn btn-info" ng-click="createTrain('IMAGE')">开始训练</button>
+                </div>
+            </div>
+        </li>
+    </ul>
+</div>
+<script type="text/ng-template" id="createTempTrain.html">
+    <div class="modal-common modal-step create-temptrain-modal">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="$dismiss()">×</button>
+            <h3 class="modal-title  clearfix">新建模板训练</h3>
+            <ul class="steps-sytle-ver clearfix">
+                <li class="clearfix step-start" ng-class="{'active':inStep>=1}">
+                    <div class="inner">
+                        <span>基本设置</span>
+                        <i>1</i>
+                    </div>
+                </li>
+                <li class="clearfix step-middle" ng-class="{'active':inStep>=2}">
+                    <div class="inner">
+                        <span>存储卷设置</span>
+                        <i>2</i>
+                    </div>
+                </li>
+                <li class="clearfix step-end" ng-class="{'active':inStep>=3}">
+                    <div class="inner">
+                        <span>超参数设置</span>
+                        <i>3</i>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="modal-body">
+            <div ng-show="inStep=='1'">
+                <form name="createFirstForm" novalidate>
+                    <div class="control-group">
+                        <label class="control-label">
+                            <span class="red">*</span>任务名称：</label>
+                        <div class="controls">
+                            <span class="val" name="taskname" placeholder="请输入任务名称">{{trainForm.taskname}}</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            <span class="red">*</span>session：</label>
+                        <div class="controls">
+                          <ui-select ng-model="trainForm.session_cputype" name="sessionCputype" ng-change="seessionTypeChange()" required>
+                              <ui-select-match placeholder="请选择机型">{{$select.selected.option}}</ui-select-match>
+                              <ui-select-choices repeat="type in allTypeData">
+                                  <div ng-bind-html="type.option | highlight: $select.search"></div>
+                              </ui-select-choices>
+                          </ui-select>
+                          <div class="error type-bottom" ng-messages="(createFirstFormValid ||createFirstForm.sessionCputype.$dirty) && createFirstForm.sessionCputype.$error">
+                              <span class="error" ng-message="required">必填项</span>
+                          </div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">配置：</label>
+                        <div class="controls clearFix type-control config-control">
+                            <div class="time-checkbox radio">
+                                <label class="config-radio">
+                                    <input type="radio" name="trainStartType" ng-model="trainForm.configOPtion.method" value="defaultConfig">
+                                    <i></i>
+                                    <span>选择配置</span>
+                                </label>
+                                <!-- <i class="icon-aw-square"></i> -->
+                                <label class="config-radio">
+                                    <input type="radio" name="trainStartType" ng-model="trainForm.configOPtion.method" value="customConfig">
+                                    <i></i>
+                                    <span>自定义配置</span>
+                                </label>
+                                <!-- <i class="icon-aw-square"></i> -->
+                            </div>
+                        </div>
+                    </div>
+                    <div ng-if="trainForm.configOPtion.method == 'defaultConfig'">
+                        <div class="control-group">
+                            <label class="control-label">配置选择：</label>
+                            <div class="controls clearFix config-chioce">
+                                <ui-select ng-model="trainForm.configOPtion.typeFlavor" name="typeFlavor" required>
+                                    <ui-select-match placeholder="请选择配置">{{$select.selected.name+ '--CPU' + $select.selected.cpu + '核' + 'GPU' + $select.selected.gpu + '核' + '内存' + $select.selected.memory + 'G'}}</ui-select-match>
+                                    <ui-select-choices repeat="flavor in flavorList">
+                                        <div ng-bind-html="flavor.name + '--CPU' + flavor.cpu + '核' + 'GPU' + flavor.gpu + '核' + '内存' + flavor.memory + 'G' | highlight: $select.search"></div>
+                                    </ui-select-choices>
+                                </ui-select>
+                                <div class="error" ng-messages="(createFirstFormValid ||createFirstForm.typeFlavor.$dirty) && createFirstForm.typeFlavor.$error">
+                                    <span class="error" ng-message="required">必填项</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div ng-if="trainForm.configOPtion.method == 'customConfig'">
+                        <div class="control-group">
+                            <label class="control-label">CPU数量(核)：</label>
+                            <div class="controls clearFix type-control">
+                                <change-num number="trainForm.session_cpu_num" class="add-num-comp" addnum="trainFormInfo.addNumber" pattern="trainFormInfo.cpuPattern" names="trainFormInfo.cpuName" createtrainform="createFirstForm" mydesc="trainFormInfo.cpuDesc"></change-num>
+                            </div>
+                        </div>
+                        <div class="control-group" ng-if="showSessionGpu">
+                            <label class="control-label">GPU数量(核)：</label>
+                            <div class="controls clearFix type-control">
+                                <change-num number="trainForm.session_nvidiagpu_num" class="add-num-comp" addnum="trainFormInfo.addNumber" pattern="trainFormInfo.cpuPattern" names="trainFormInfo.gpuName" createtrainform="createFirstForm" mydesc="trainFormInfo.cpuDesc"></change-num>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">内存大小(GB)：</label>
+                            <div class="controls clearFix type-control">
+                                <change-num number="trainForm.session_memory_num" class="add-num-comp" addnum="trainFormInfo.memoryAddNumber" pattern="trainFormInfo.memoryPattern" names="trainFormInfo.memoryName" createtrainform="createFirstForm" mydesc="trainFormInfo.memoryDesc"></change-num>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="create-train-second" ng-show="inStep=='2'">
+                <form name="createSecondForm" novalidate>
+                    <div class="control-group">
+                        <label class="control-label">
+                            <span class="red">*</span>存储卷：
+                        </label>
+                        <div class="controls">
+                            <ui-select ng-model="trainForm.volume_groups[0]" name="volume" ng-click="volumeChange(0)" required>
+                                <ui-select-match placeholder="请选择存储卷">{{$select.selected.pvc}}</ui-select-match>
+                                <ui-select-choices repeat="volume in volumeData[0]">
+                                    <div ng-bind-html="volume.pvc | highlight: $select.search"></div>
+                                </ui-select-choices>
+                            </ui-select>
+                            <div class="error type-bottom" ng-messages="(createSecondFormValid ||createSecondForm.volume.$dirty) && createSecondForm.volume.$error">
+                                <span class="error" ng-message="required">必填项</span>
+                            </div>
+                        </div>
+                        <div class="controls controls-volume">
+                            <div class="add-volume-controls" ng-repeat="item in addVolumes">
+                                <div class="volume-title">
+                                    <p>附加存储卷{{$index + 1}}</p>
+                                    <span ng-click="removeVolume($index+1)">
+                                      <i class="icon-aw-wrong"></i>
+                                    </span>
+                                </div>
+                                <div class="volume-content">
+                                    <ui-select ng-model="trainForm.volume_groups[$index + 1]" name="add_volume_{{$index}}" ng-click="volumeChange($index + 1)" required>
+                                        <ui-select-match placeholder="请选择存储卷">{{$select.selected.pvc}}</ui-select-match>
+                                        <ui-select-choices repeat="volume in volumeData[$index + 1]">
+                                            <div ng-bind-html="volume.pvc | highlight: $select.search"></div>
+                                        </ui-select-choices>
+                                    </ui-select>
+                                    <div class="error type-bottom" ng-messages="(createSecondFormValid ||createSecondForm['add_volume_'+$index].$dirty) && createSecondForm['add_volume_'+$index].$error">
+                                        <span class="error" ng-message="required">必填项</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="add-addition-volume">
+                            <div class="add-volume">
+                                <span ng-click="addVolume(createSecondForm)">
+                                  <i class="icon-aw-add-to2"></i>添加附加存储卷
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="create-train-fourth create-param train-model-parmas clearFix" ng-show="inStep=='3'">
+                <form name="createParamForm">
+                  <div class="control-group" ng-repeat="item in trainForm.params track by $index">
+                    <label class="control-label">{{item.name}}：</label>
+                    <div class="controls">
+                        <input type="text" class="form-controls" name="{{item.name}}" id="{{paramsPattern[$index].id}}" ng-model="item.value" ng-pattern="paramsPattern[$index].pattern" ng-required="paramsPattern[$index].isRequired"/>
+                        <div class="error" ng-messages="(createParamFormValid ||createParamForm[item.name].$dirty) && createParamForm[item.name].$error">
+                            <span class="error" ng-message="required">必填项</span>
+                            <span class="error" ng-message="pattern">{{paramsPattern[$index].patternInfo}}</span>
+                        </div>
+                    </div>
+                  </div>
+                  <div class="params-error" ng-if="overStep">
+                    <span class="error">eval_step的值不能大于steps的值</span>
+                  </div>
+                </form>
+                <div class="params-info" ng-if="trainModelType=='CNN'">
+                    <p>一次性训练的图片数量， 默认200</p>
+                    <p>基准学习率，默认值0.005</p>
+                    <p>学习率衰减指数，默认值0.99</p>
+                    <p>训练的正则化指数, 默认值0.0001</p>
+                    <p>训练的次数，默认10000</p>
+                    <p class="params-last-container">每隔多少次训练，输出部分训练结果，默认1000，但是不能大于steps</p>
+                </div>
+                <div class="params-info" ng-if="trainModelType=='LETTER'">
+                    <p>RNN隐藏状态个数，默认值256</p>
+                    <p>RNN 层数，默认值2</p>
+                    <p>一次填入单词个数，默认值50</p>
+                    <p>默认值1000</p>
+                    <p>学习效率，默认值0.002</p>
+                    <p>rmsprop衰减率，默认值0.97</p>
+                </div>
+                <div class="params-info" ng-if="trainModelType=='IMAGE'">
+                    <p>训练结束前运行的训练步数，默认值10000</p>
+                    <p>训练时使用的学习率大小，默认值0.005</p>
+                    <p>训练结果评估的步数间隔，默认值100</p>
+                    <p>一次训练的图像的数量，默认值100</p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer train-modal-footer">
+            <div ng-show="inStep=='1'">
+                <div ng-if="firstStepQuota">
+                    <div class="error" ng-if="createQuota.cpuOverQuota">CPU超过配额，请修改后重试</div>
+                    <div class="error" ng-if="createQuota.gpuOverQuota">GPU超过配额，请修改后重试</div>
+                    <div class="error" ng-if="createQuota.memoryOverQuota">内存超过配额，请修改后重试</div>
+                </div>
+                <button class="btn btn-info" type="button" ng-click="stepTo(createFirstForm)">下一步</button>
+                <button class="btn btn-default" type="button" ng-click="$dismiss()">取消</button>
+            </div>
+            <div ng-show="inStep=='2'">
+                <button class="btn btn-default" type="button" ng-click="stepBack()">上一步</button>
+                <button class="btn btn-info" type="button" ng-click="stepTo(createSecondForm)">下一步</button>
+                <button class="btn btn-default" type="button" ng-click="$dismiss()">取消</button>
+            </div>
+            <div ng-show="inStep=='3'">
+                <button class="btn btn-default" type="button" ng-click="stepBack()">上一步</button>
+                <button class="btn btn-info" type="button" ng-click="createConfirm(createParamForm,trainForm)">新建</button>
+                <button class="btn btn-default" type="button" ng-click="$dismiss()">取消</button>
+            </div>
+        </div>
+    </div>
+</script>
+<script type="text/ng-template" id="trainDetailTempTrain.html">
+    <div class="modal-common">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="$dismiss()">×</button>
+            <h3 class="modal-title  clearfix">帮助信息</h3>
+        </div>
+        <div class="modal-body">
+            <div class="help-info" ng-if="infoType=='CNN'">
+                <h4>Mnist数据集卷积神经网络示例</h4>
+                <p class="help-text-indent">该任务采用Mnist数据集（手写体数字识别），大致讲解一个CNN卷积神经网络的实现过程，
+                    包含了神经网络的定义，训练，推测正确率和实际预测等内容。该卷积神经网络采用Lenet-5
+                    算法进行实现。该任务的主要过程大致如下：</p>
+                <div class="info-content">
+                    <p>1.存储卷创建</p>
+                    <p class="help-text-indent">首先需要创建存储卷, 使用该任务进行训练时需要选择已经创建好的存储卷,
+                        存储卷会挂载到训练集群的/root/tensorflow目录下
+                        训练过程中的日志及训练的模型都会保存到存储卷中。</p>
+                    <p>2.训练神经网络</p>
+                    <p class="help-text-indent">该任务中的训练数据集是一个文件夹，里面是包含了训练所需要使用的数据文件，包含了训练数据集和测试的
+                        数据集。数据集mnist_data文件夹应该有这样的结构：
+                        </p>
+                    <p class="help-text-indent">t10k-images-idx3-ubyte.gz</p>
+                    <p class="help-text-indent">t10k-labels-idx1-ubyte.gz</p>
+                    <p class="help-text-indent">train-images-idx3-ubyte.gz</p>
+                    <p class="help-text-indent">train-labels-idx1-ubyte.gz</p>
+                    <p>3.生成训练模型</p>
+                    <p class="help-text-indent">由于该任务是从零开始进行训练，因此，模型是由神经网络训练生成的。默认情况下，该任务训练完成之后，生成的模型文件放在/root/tensorflow/model下。
+                        而该文件夹下的内容大致如下：</p>
+                    <p class="help-text-indent">checkpoint</p>
+                    <p class="help-text-indent">mnist_model-100004.data-00000-of-00001</p>
+                    <p class="help-text-indent">mnist_model-100004.index</p>
+                    <p class="help-text-indent">mnist_model-100004.meta</p>
+                    <p class="help-text-indent">其中，checkpoint为文本文件，记录了本次训练到了多少次，index、meta和data
+                        文件则是本次训练的结果记录文件。所有的checkpoint、index、meta和data文件
+                        共同构成了训练之后的模型文件。</p>
+                    <p>4.训练的日志路径</p>
+                    <p class="help-text-indent">训练的日志存放路径可以在训练时指定, 默认存在/root/tensorflow/log目录
+                        训练完成后可以打开tensorboard查看训练情况。</p>
+                    <p>5.训练的模型路径</p>
+                    <p class="help-text-indent">训练后的模型路径可以在训练时指定, 默认存在/root/tensorflow/model目录。</p>
+                </div>
+            </div>
+            <div class="help-info" ng-if="infoType=='LETTER'">
+                <h4>单词预测示例</h4>
+                <p class="help-text-indent">该任务使用tinyshakespeare数据集(经过一定处理后的单词集合)，大致演示讲解LSTM的实现过程。该任务的主要过程大致如下：</p>
+                <div class="info-content">
+                    <p>1.存储卷创建</p>
+                    <p class="help-text-indent">首先需要创建存储卷, 使用该任务进行训练时需要选择已经创建好的存储卷,
+                        存储卷会挂载到训练集群的/root/tensorflow目录下
+                        训练过程中的日志及训练的模型都会保存到存储卷中。</p>
+                    <p>2.训练神经网络</p>
+                    <p class="help-text-indent">该任务中的训练数据集是一个文件，里面是包含了训练所需要使用的数据，包含了训练数据集和测试的数据集。</p>
+                    <p>3.生成训练模型</p>
+                    <p class="help-text-indent">由于该任务是从零开始进行训练，因此，模型是由神经网络训练生成的。
+                        默认情况下，该任务训练完成之后，生成的模型文件放在/root/tensorflow/model下。
+                        而该文件夹下的内容大致如下：</p>
+                    <p class="help-text-indent">checkpoint</p>
+                    <p class="help-text-indent">config.pkl</p>
+                    <p class="help-text-indent">words_vocab.pkl</p>
+                    <p class="help-text-indent">model.ckpt-8099.meta</p>
+                    <p class="help-text-indent">model.ckpt-8099.index</p>
+                    <p class="help-text-indent">model.ckpt-8099.data-00000-of-00001</p>
+                    <p class="help-text-indent">所有的checkpoint、index、meta和data文件
+                        共同构成了训练之后的模型文件。</p>
+                    <p>4.训练的日志路径</p>
+                    <p class="help-text-indent">训练的日志存放路径可以在训练时指定, 默认存在/root/tensorflow/log目录
+                        训练完成后可以打开tensorboard查看训练情况。
+                    </p>
+                    <p>5.训练的模型路径</p>
+                    <p class="help-text-indent">训练后的模型路径可以在训练时指定, 默认存在/root/tensorflow/model目录。</p>
+                </div>
+            </div>
+            <div class="help-info" ng-if="infoType=='IMAGE'">
+                <h4>基于Inception-V3模型的花朵识别</h4>
+                <p class="help-text-indent">该任务展示基于已有的Inception V3架构模型来训练新的数据集,使得训练的模型可以识别其他类的图像。
+                    每个图像里,顶层接收作为输入的一个2048维向量，这表示顶层我们训练一个softmax层，
+                    假设softmax层包含n个标签,这对应于学习N + 2048 * N模型参数对应于学习偏差和权重。该任务的主要过程大致如下：</p>
+                <div class="info-content">
+                    <p>1.存储卷创建</p>
+                    <p class="help-text-indent">首先需要创建存储卷, 使用该任务进行训练时需要选择已经创建好的存储卷,
+                        存储卷会挂载到训练集群的/root/tensorflow目录下
+                        训练过程中的日志及训练的模型都会保存到存储卷中。</p>
+                    <p>2.自定义的数据集</p>
+                    <p class="help-text-indent">该任务中的数据集是一个文件夹，里面是包含类名的子文件夹，每一个里面放置每个标签的图像。
+                        示例数据集data文件夹应该有这样的结构：</p>
+                    <p class="help-text-indent">~/data/daisy/photo1.jpg</p>
+                    <p class="help-text-indent">~/data/daisy/photo2.jpg</p>
+                    <p class="help-text-indent">...</p>
+                    <p class="help-text-indent">~/data/rose/anotherphoto77.jpg</p>
+                    <p class="help-text-indent">...</p>
+                    <p class="help-text-indent">~/data/sunflower/somepicture.jpg</p>
+                    <p>3.InceptionV3模型路径</p>
+                    <p class="help-text-indent">inceptionV3模型是已经训练好的图像识别模型, 该任务会先加载该模型, 再对新的数据集进行训练
+                        该任务中inceptionV3模型已经存放在 /root/flower/inception目录。
+                        也可以在官网上下载:http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz</p>
+                    <p>4.训练的日志路径</p>
+                    <p class="help-text-indent">训练的日志存放路径可以在训练时指定, 默认存在/root/tensorflow/log目录
+                        训练完成后可以打开tensorboard查看训练情况。
+                    </p>
+                    <p>5.训练的模型路径</p>
+                    <p class="help-text-indent">训练后的模型路径可以在训练时指定, 默认存在/root/tensorflow/model目录。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>

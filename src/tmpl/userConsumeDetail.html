@@ -1,0 +1,121 @@
+<div class="billing">
+    <div ng-controller="userConsumeDetailCtrl">
+        <div class='animateContent {{userAnimation}} '>
+            <div class='detailInner'>
+                <div class="tab-content">
+                    <div class="detail-row">
+                        <div class="detail-title">
+                            <a class="an-close" ng-click="returnOrgPath('user')"><i class="icon-aw-mail-reply"></i></a>
+                            <span><span class="blue">{{userName}} </span> <strong> 用户</strong></span>
+                        </div>
+                        <div class="detail-info">
+                            <div class="box">
+                                <div class="col-12">
+                                    <div class="title">资源费用</div>
+                                    <div class="panels clearfix res" ng-class="{'twocol':user_resConsumeChart.panels.data.length>6,'res-media':resMedia}">
+                                        <div class="pie-wrap">
+                                            <div class="pie" chart-pie panel='user_resConsumeChart.panels' detail="true"></div>
+                                            <div class="pie-center" ng-show="user_resConsumeChart.panels.data.length>0">
+                                                <div class="num">{{user_resConsumeTotal}}</div>
+                                                <div class="text">总费用（元）</div>
+                                            </div>
+                                            <div class="pie-center-message">
+                                                <span><span class="block-min">资源</span>费用比例</span>
+                                            </div>
+                                        </div>
+                                        <div class="pie-legend" ng-show="user_resConsumeChart.panels.data.length>0">
+                                            <table class="table">
+                                                <tr>
+                                                    <th></th>
+                                                    <th>资源类型</th>
+                                                    <th>费用（元）</th>
+                                                    <th>比例</th>
+                                                </tr>
+                                                <tr ng-repeat="item in user_resConsumeChart.panels.data" ng-if="$index<6" ng-class="{'last-tr':$index==5 && !resMedia}">
+                                                    <td><i style="background-color:{{user_resConsumeChart.panels.colors[$index]}}"></i></td>
+                                                    <td><span class="nowrap">{{item.name}}</span></td>
+                                                    <td><span class="num">{{miliFormat(item.value)}}</span></td>
+                                                    <td>{{item.percent}}</td>
+                                                </tr>
+                                                <tr ng-repeat="item in user_resConsumeChart.panels.data" ng-if="$index>=6 && resMedia">
+                                                    <td><i style="background-color:{{user_resConsumeChart.panels.colors[$index]}}"></i></td>
+                                                    <td><span class="nowrap">{{item.name}}</span></td>
+                                                    <td><span class="num">{{miliFormat(item.value)}}</span></td>
+                                                    <td>{{item.percent}}</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        <div class="pie-legend" ng-show="user_resConsumeChart.panels.data.length>6 && !resMedia">
+                                            <table class="table">
+                                                <tr>
+                                                    <th></th>
+                                                    <th>资源类型</th>
+                                                    <th>费用（元）</th>
+                                                    <th>比例</th>
+                                                </tr>
+                                                <tr ng-repeat="item in user_resConsumeChart.panels.data" ng-if="$index>=6 ">
+                                                    <td><i style="background-color:{{user_resConsumeChart.panels.colors[$index]}}"></i></td>
+                                                    <td><span class="nowrap">{{item.name}}</span></td>
+                                                    <td><span class="num">{{miliFormat(item.value)}}</span></td>
+                                                    <td>{{item.percent}}</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="box">
+                                <div table-action filter-data="filterData" query="query()" download-data="downloadConsumeData()" search="applyGlobalSearch()" refresh="refreshConsumeStatisticTable()" csv-header="csvHeader" file-name="fileName"></div>
+                                <div class="table-content">
+                                    <empty-tip empty-type="loadResofUserConsumeTableData" tip-id="'resofuser-consume-tip-msg'"></empty-tip>
+                                    <table class="table" template-pagination="/tmpl/ngtablepagination.html" ng-table="resOfUserConsumeStatisticTable">
+                                        <tr ng-repeat="item in $data track by $index">
+                                            <td data-title="'名称'" sortable="'_resourceName'">{{item._resourceName}}</td>
+                                            <td data-title="'费用（元）'" sortable="'consumptionAmount'">{{miliFormat(item.consumptionAmount)}}</td>
+                                            <td data-title="'操作'" sortable="''"><a ng-click="viewUserResConsumeDetail(item)">详情</a></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class='animate-backup'></div>
+    </div>
+    <div ng-controller="userResConsumeDetailCtrl">
+        <div class='animateContent {{userResAnimation}} '>
+            <div class='detailInner'>
+                <div class="tab-content">
+                    <div class="detail-row">
+                        <div class="detail-title text-nav">
+                            <a class="an-close" ng-click="returnOrgPath('userRes')">用户详情</a>
+                            <span> > 账单详情</span>
+                        </div>
+                        <div class="detail-info">
+                            <div class="box">
+                                <div table-action filter-data="filterData" query="query()" download-data="downloadConsumeData()" search="applyGlobalSearch()" refresh="refreshConsumeStatisticTable()" csv-header="csvHeader" file-name="fileName"></div>
+                                <div class="table-content">
+                                    <empty-tip empty-type="loadResBillDetailTableData" tip-id="'resbilldetail-tip-msg'"></empty-tip>
+                                    <table class="table" template-pagination="/tmpl/ngtablepagination.html" ng-table="resBillDetailTable">
+                                        <tr ng-repeat="item in $data track by $index">
+                                            <td data-title="'产品名称'" sortable="'_resourceName'">{{item._resourceName}}</td>
+                                            <td data-title="'数据中心'" sortable="'region'">{{item.region}}</td>
+                                            <td data-title="'部门'" sortable="'deptName'">{{item.deptName}}</td>
+                                            <td data-title="'项目'" sortable="'projectName'">{{item.projectName}}</td>
+                                            <td data-title="'单价（元/小时）'" sortable="'unitPrice'">{{miliFormat(item.unitPrice)}}</td>
+                                            <td data-title="'金额（元）'" sortable="'amount'">{{miliFormat(item.amount)}}</td>
+                                            <td data-title="'计费开始时间'" sortable="'chargeTime'">{{item.chargeTime}}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- <div class='animate-backup'></div> -->
+    </div>
+</div>

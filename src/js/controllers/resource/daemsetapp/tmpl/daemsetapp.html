@@ -1,0 +1,105 @@
+<div class="page-inner">
+    <div class="table-action">
+        <div class="pull-right">
+            <div class="search-box">
+                <form name="searchForm" novalidate ng-keyup="applyGlobalSearch()">
+                    <button class="btn" type="submit" ng-disabled="searchForm.$invalid">
+                        <i class="icon-aw-search"></i>
+                    </button>
+                    <input type="text" class="form-control" autocomplete="off" maxlength="128" name="searchTerm" ng-model="globalSearchTerm"
+                        placeholder="{{'cn.hostmanage.placeholderSearch'|translate}}" />
+                </form>
+            </div>
+            <button class="btn btn-renovat" ng-click="refresh()">
+                <i class="icon-aw-refresh"></i>
+            </button>
+            <!-- <setting title-data="serviceappManageTitleData" site-title="serviceappName" table-data="serviceappManageListData" search-tearm="serviceappManageSearchTerm(obj)"></setting> -->
+        </div>
+    </div>
+    <div class="table-content">
+        <empty-tip empty-type="loadData"></empty-tip>
+        <table ng-table="tableParams" class="table" template-pagination="/tmpl/ngtablepagination.html">
+            <colgroup>
+                <col width="20%">
+                <col width="20%">
+                <col width="20%">
+                <col width="20%">
+                <col width="20%">
+            </colgroup>
+            <tr ng-repeat="item in $data">
+                <td data-title="dataTitles.name" sortable="'name'"><a ng-href="#/resource/daemsetapp?id={{item.id}}&namespace={{item.namespace}}&name={{item.name}}">{{item.name}}</a></td>
+                <td data-title="dataTitles.namespace" sortable="'namespace'"><span>{{item.namespace}}</span></td>
+                <td data-title="dataTitles.numberAvailable" sortable="'numberAvailable'"><span>{{item.numberAvailable}}</span></td>
+                <td data-title="dataTitles.numberReady" sortable="'numberReady'"><span>{{item.numberReady}}</span></td>
+                <td data-title="dataTitles.creationTimestamp" sortable="'creationTimestamp'"><span>{{item.creationTimestamp}}</span></td>
+            </tr>
+        </table>
+        <div ng-controller="detailCtrl">
+            <pane class="detail-body" animation="animation">
+                <div class="detail-row">
+                    <div class="detail-title">
+                        <a class="an-close" ng-href="/#/resource/daemsetapp">
+                            <i class="icon-aw-mail-reply"></i>
+                        </a>
+                        <span>应用{{daemsetappDetailInfo.name}}详情</span>
+                    </div>
+                </div>
+                <table class="table table-info column">
+                    <tr>
+                        <td>最新的副本数</td>
+                        <td>{{daemsetappDetailInfo.scheduledInfo.updatedNumberScheduled}}</td>
+                        <td>现有的副本数</td>
+                        <td>{{daemsetappDetailInfo.scheduledInfo.currentNumberScheduled}}</td>
+                    </tr>
+                    <tr>
+                        <td>期望的副本数</td>
+                        <td>{{daemsetappDetailInfo.scheduledInfo.desiredNumberScheduled}}</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </table>
+                <div class="detail-info" ng-repeat="item in daemsetappDetailInfo.containers">
+                    <h4>容器信息{{$index+1}}</h4>
+                    <table class="table table-info column">
+                        <tr>
+                            <td>镜像名称</td>
+                            <td>{{item.name}}</td>
+                            <td>镜像地址</td>
+                            <td>{{item.image}}</td>
+                        </tr>
+                        <tr>
+                            <td>申请的cpu</td>
+                            <td>{{item.resources.requests.cpu}}
+                            <td>申请的内存</td>
+                            <td>{{item.resources.requests.memory}}</td>
+                        </tr>
+                        <tr>
+                            <td>资源的挂载路径</td>
+                            <td>{{item.volumeMounts[0].mountPath}}</td>
+                            <td>资源的挂载名称</td>
+                            <td>{{item.volumeMounts[0].name}}</td>
+                        </tr>
+                        <tr>
+                            <td>环境变量名称</td>
+                            <td>{{item.env[0].name}}</td>
+                            <td>环境变量值</td>
+                            <td>{{item.env[0].value}}</td>
+                        </tr>
+                        <tr ng-repeat="port in item.ports">
+                            <td>端口名称</td>
+                            <td>{{port.name}}</td>
+                            <td>容器端口/协议</td>
+                            <td>
+                                <span ng-if="!port.containerPort">NULL</span>
+                                <span ng-if="port.containerPort">{{port.containerPort}}</span>
+                                /
+                                <span ng-if="!port.protocol">NULL</span>
+                                <span ng-if="port.protocol">{{port.protocol}}</span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </pane>
+        </div>
+    </div>
+</div>

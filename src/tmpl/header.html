@@ -1,0 +1,215 @@
+
+<div ng-controller="topListCtrl">
+  <div class="inner clearfix"  ng-if='!isAuth'>
+    <div class="logo">
+      <a ng-href="#/resource/resourceview">&nbsp;&nbsp;</a>
+    </div>
+    <div class="view-switch" ng-if="isAdmin">
+      <ul class="view-ul">
+        <li ng-class = "{'active': businessView}">
+          <a ng-click="switchToBusiness()"><i class="icon-aw-sort"></i>{{"cn.tmpl.header.businessView"|translate}}</a>
+        </li>
+        <li ng-class = "{'active': !businessView}">
+          <a ng-click="switchToManage()"><i class="icon-aw-gear"></i>{{"cn.tmpl.header.manageView"|translate}}</a>
+        </li>
+      </ul>
+    </div>
+    <user-switch-select></user-switch-select>
+    <ul class="user-mes-box clearfix">
+      <li class="admin-center-info">
+        <a><span title='{{userName}}'>{{userName}}</span><i class="iconfont"></i></a>
+        <div class="dropdown-layer admin-center">
+          <ul class="admin-center-menu">
+            <li>
+              <a ng-click="accountSetting()"><i class="icon-aw-gear"></i>{{"cn.tmpl.header.accountSetting"|translate}}</a>
+            </li>
+            <li ng-if="showAllowUser()">
+                <a ng-click="openAllowPro()" ><i class="icon-aw-user"></i>{{"cn.tmpl.header.openAllowPro"|translate}}</a>
+            </li>
+            <li>
+              <a ng-click="logOut()"><i class="icon-aw-shut-down"></i>{{"cn.tmpl.header.quit"|translate}}</a>
+            </li>
+          </ul>
+        </div>
+      </li>
+    </ul>
+    <!-- <div class="translate-select pull-right">
+      <ui-select ng-model="tran.selected" ng-change="tranSelect(tran.selected)">
+        <ui-select-match placeholder="{{$select.selected.text}}" title="{{$select.selected.text}}">{{$select.selected.text}}</ui-select-match>
+        <ui-select-choices repeat="item in trans.list | filter:{text:$select.search}">
+          <div ng-bind-html="item.text | highlight: $select.search"></div>
+        </ui-select-choices>
+      </ui-select>
+    </div> -->
+  </div>
+  <div class="inner is-auth" ng-if='isAuth'>
+    <!-- <div class="logo">
+      <a ng-href="/">&nbsp;&nbsp;</a>
+    </div> -->
+    <!-- <div class="translate-select pull-right">
+      <ui-select class="ui-select-black" ng-model="tran.selected" ng-change="tranSelect(tran.selected)">
+        <ui-select-match placeholder="{{$select.selected.text}}" title="{{$select.selected.text}}">{{$select.selected.text}}</ui-select-match>
+        <ui-select-choices repeat="item in trans.list | filter:{text:$select.search}">
+          <div ng-bind-html="item.text | highlight: $select.search"></div>
+        </ui-select-choices>
+      </ui-select>
+    </div> -->
+  </div>
+
+  <script type="text/ng-template" id="accountSetting.html">
+    <div class="modal-common editUser-modal">
+      <div class="modal-header">
+        <button type="button" class="close" ng-click="$dismiss()">×</button>
+        <h3 class="modal-title">{{"cn.tmpl.header.accountSetting"|translate}}</h3>
+      </div>
+      <div class="modal-body accountSetting">
+        <div>
+          <uib-tabset active=tabActive justified="true">
+            <uib-tab index="0" heading="{{'cn.usermanage.basicInfo'|translate}}">
+              <form name="userInfoForm" novalidate>
+                  <div class="control-group">
+                    <label class="control-label">
+                      {{"cn.usermanage.userName"|translate}}：
+                    </label>
+                    <div class="controls">
+                      <p class="form-controls userName-controls">{{userFormData.userName}}</p>
+                    </div>
+                  </div>
+                  <div class="control-group">
+                    <label class="control-label">
+                      {{"cn.usermanage.email"|translate}}：</label>
+                    <div class="controls">
+                        <input class="form-controls" name="email" ng-model="userFormData.email" placeholder='{{"cn.usermanage.placeholder.email"|translate}}'
+                        ng-pattern="/^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/" ng-maxlength="50" />
+                        <div class="error" ng-messages="(submitValid ||userInfoForm.email.$dirty) && userInfoForm.email.$error">
+                          <span class="error" ng-message="pattern">{{'cn.errors.email'|translate}}</span>
+                          <span class="error" ng-message="maxlength">{{'cn.errors.emailmaxlength'|translate}}</span>
+                        </div>
+                    </div>
+                  </div>
+                  <div class="control-group">
+                      <label class="control-label">
+                        <span class="red">*</span>{{"cn.usermanage.phone"|translate}}：
+                      </label>
+                      <div class="controls">
+                          <input type="text" class="form-controls" name="phone" ng-model="userFormData.phone" placeholder='{{"cn.usermanage.placeholder.phone"|translate}}'
+                          ng-pattern="/(^(13\d|15[^4,\D]|17[13678]|18\d)\d{8}|170[^346,\D]\d{7})$/" required />
+                          <div class="error" ng-messages="(submitValid ||userInfoForm.phone.$dirty) && userInfoForm.phone.$error">
+                            <span class="error" ng-message="required">{{'cn.errors.required'|translate}}</span>
+                            <span class="error" ng-message="pattern">{{'cn.errors.phone'|translate}}</span>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="control-group">
+                    <label class="control-label">&nbsp;</label>
+                    <div class="controls">
+                      <button class="btn btn-info" type="button" ng-click="saveBasicInfo(userInfoForm)" ng-disabled="basicDisabled">{{'cn.action.save'|translate}}</button>
+                    </div>
+                  </div>
+              </form>
+            </uib-tab>
+            <uib-tab index="1" heading="{{'cn.usermanage.password'|translate}}">
+              <form name="passwordForm">
+                <div ng-if="modifyPasswordLoading" class="modify-error">{{'cn.modifyPassword.oldPassword'|translate}}</div>
+                <div class="control-group">
+                  <label class="control-label">
+                    <span class="red">*</span>{{'cn.usermanage.oldPassword'|translate}}：</label>
+                  <div class="controls">
+                    <input type="password" class="form-controls" name="oldPassword" id="oldPw" ng-model="passwordFormData.oldPassword"
+                      placeholder="{{'cn.usermanage.placeholder.oldPsw'|translate}}" ng-maxlength="16" required />
+                    <div ng-messages="(passwordSubmitValid ||passwordForm.oldPassword.$dirty) && passwordForm.oldPassword.$error">
+                      <span class="error" ng-message="required">{{'cn.errors.required'|translate}}</span>
+                      <span class="error" ng-message="pattern">{{'cn.errors.maxlength16'|translate}}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="control-group">
+                  <label class="control-label">
+                    <span class="red">*</span>{{'cn.usermanage.newPassword'|translate}}：</label>
+                  <div class="controls">
+                    <input type="password" class="form-controls" name="newPassword" ng-model="passwordFormData.newPassword" id="newPw" oldnew-check="oldPw"
+                      ng-pattern="/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@._:,\/\-\^\%])[0-9a-zA-Z!@._:,\/\-\^\%]{8,16}$/"
+                      placeholder="{{'cn.usermanage.placeholder.newPsw'|translate}}" required />
+                    <div ng-messages="(passwordSubmitValid ||passwordForm.newPassword.$dirty) && passwordForm.newPassword.$error">
+                      <span class="error" ng-message="required">{{'cn.errors.required'|translate}}</span>
+                      <span class="error" ng-message="pattern">{{'cn.usermanage.checkInfo.special_8_16'|translate}}</span>
+                      <span class="error" ng-message="oldnewCheck">{{'cn.usermanage.checkInfo.samePassword'|translate}}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="control-group">
+                  <label class="control-label">
+                    <span class="red">*</span>{{'cn.usermanage.confirmNewPassword'|translate}}：</label>
+                  <div class="controls">
+                    <input type="password" class="form-controls" name="comfirmpass" ng-model="passwordFormData.comfirmPassword" pw-check="newPw" ng-pattern="/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@._:,\/\-\^\%])[0-9a-zA-Z!@._:,\/\-\^\%]{8,16}$/"
+                    placeholder="{{'cn.usermanage.placeholder.confirmPsw'|translate}}" required />
+                    <div ng-messages="(passwordSubmitValid || passwordForm.comfirmpass.$dirty) && passwordForm.comfirmpass.$error">
+                      <span class="error" ng-message="required">{{'cn.errors.required'|translate}}</span>
+                      <span class="error" ng-message="pattern">{{'cn.usermanage.checkInfo.special_8_16'|translate}}</span>
+                      <span class="error" ng-message="pwCheck">{{'cn.usermanage.checkInfo.notSamePasswd'|translate}}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="control-group">
+                  <label class="control-label">&nbsp;</label>
+                  <div class="controls">
+                    <button class="btn btn-info" type="button" ng-click="modifyPassword(passwordForm)" ng-disabled="passwordDisabled">{{'cn.action.save'|translate}}</button>
+                  </div>
+                </div>
+              </form>
+            </uib-tab>
+          </uib-tabset>
+        </div>
+      </div>
+    </div>
+  </script>
+  <script type="text/ng-template" id="allocateUser.html">
+	<div class="modal-common">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true" ng-click="$dismiss()">×</button>
+			<h3 class="modal-title">{{'cn.projectManage.allocateUser'|translate}}</h3>
+		</div>
+		<div class="modal-body">
+			<form name="allocateUserForm">
+                <div class="control-group">
+                    <label class="control-label">{{"cn.projectManage.proAdmin"|translate}}：</label>
+                    <div class="controls">
+                        <span class="val">{{proName}}</span>
+                        <!-- <ui-select ng-model="manager.adminName" name="promanager" required ng-change="choiceManager(manager.adminName)">
+                            <ui-select-match placeholder='{{"cn.projectManage.placeholder.proAdminList"|translate}}'>
+                                {{$select.selected.name}}                                    
+                            </ui-select-match>
+                            <ui-select-choices repeat="manager in managerList">
+                                <div ng-bind-html="user.name | highlight: $select.search"></div>                                    
+                            </ui-select-choices>
+                        </ui-select>
+                        <div ng-messages="allocateUserForm.promanager.$dirty && allocateUserForm.promanager.$error">
+                            <span class="error" ng-message="required">{{"cn.message.required"|translate}}</span>
+                        </div> -->
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">{{"cn.projectManage.proUser"|translate}}：</label>
+                    <div class="controls">
+                        <ui-select multiple close-on-select="false" ng-model="allowPro.userNameList" name="choiceUser" theme="bootstrap" required ng-change="choiceUser(allowProUser.NameList)">
+                            <ui-select-match placeholder='{{"cn.projectManage.placeholder.proUserList"|translate}}'>{{$item.name}}
+                            </ui-select-match>
+                            <ui-select-choices repeat="user in userList">
+                                <div ng-bind-html="user.name | highlight: $select.search"></div>
+                            </ui-select-choices>
+                        </ui-select>
+                        <div ng-messages="allocateUserForm.choiceUser.$dirty && allocateUserForm.choiceUser.$error">
+                            <span class="error" ng-message="required">{{"cn.message.required"|translate}}</span>
+                        </div>
+                    </div>
+                </div>
+            </form>
+		</div>
+		<div class="modal-footer">
+		    <button class="btn btn-info" type="button" ng-click="allocateUserComfirm(allocateUserForm)">{{"cn.action.ok"|translate}}</button>
+			<button class="btn btn-default" type="button" ng-click="$dismiss()">{{"cn.action.cancel"|translate}}</button>
+		</div>  
+	</div>
+</script>
+</div>
+

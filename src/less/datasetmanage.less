@@ -1,0 +1,124 @@
+.dataset-manage{
+    .modal-body{
+        .school-group{
+            width: 85%;
+            margin-left: 15%;
+        }
+        .control-group{
+            .volumes-size{
+                width: 25%;
+                .size-num{
+                    width: 75%;
+                    float: left;
+                }
+            }
+        }
+    }
+}
+.pro-bar{
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: white;
+    z-index: 1000;
+    .progress-step{
+        position: relative;
+        top: 30%;
+        background:#f3f3f3;
+        border-radius:4px;
+        width:620px;
+        height:20px;
+        margin:0 auto;
+        .an-to{
+            width:0;
+            height:100%;
+            //background: -webkit-linear-gradient(left, #e74c3c, #fff);
+        }
+        .progress-base{
+            // transition: all 1s linear 0s;
+            height:100%;
+            background-color: #0387ce; 
+            border-radius:4px;
+            -webkit-animation: progress-bar-ws 2s linear infinite;
+            -o-animation: progress-bar-ws 2s linear infinite;
+            animation: progress-bar-ws 2s linear infinite;
+            background-image: -webkit-linear-gradient(-45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+            background-image: -o-linear-gradient(-45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+            background-image: linear-gradient(-45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+            background-size: 40px 40px;
+            .progress-title{
+                position: absolute;
+                left: 105%;
+                top:0
+            }
+            .progress-loading{
+                position: absolute;
+                left: 0;
+                top:150%;
+            }
+        }
+        .color-0{
+            background-color:#0387ce;
+            // width:5%;
+        }
+        .color-1{
+            background-color:#0597e8;
+            width:10%;
+        }
+        .color-2{
+            background-color:#2db5f1;
+            width:17%;
+            box-shadow:0 0 2px rgba(192,57,43,0.5);
+        }
+        .color-3{
+            background-color:#55c5f2;
+            width:34%;
+            box-shadow:0 0 2px rgba(192,57,43,0.5);
+        }
+        .color-4{
+            background-color:#5ed1ff;
+            width:48%;
+            box-shadow:0 0 2px rgba(192,57,43,0.5);
+        }
+        .color-5{
+            background-color:#7be8ff;
+            width:65%;
+            box-shadow:0 0 2px rgba(192,57,43,0.5);
+        }
+        .color-6{
+            background-color:#58edd0;
+            width:75%;
+            box-shadow:0 0 2px rgba(192,57,43,0.5);
+        }
+        .color-7{
+            background-color:#43e2c3;
+            width:85%;
+            box-shadow:0 0 2px rgba(192,57,43,0.5);
+        }
+        .color-8{
+            background-color:#33d2b3;
+            width:90%;
+            box-shadow:0 0 2px rgba(192,57,43,0.5);
+        }
+        .color-9{
+            background-color:#1abd9d;
+            // width:100%;
+            box-shadow:0 0 2px rgba(192,57,43,0.5);
+            transition: none;
+        }
+    }
+}
+.data-set-desc{
+    textarea{
+        height: 250px;        
+    }
+    .error{
+        color: @red;
+    }
+}
+.data-set-detail-title{
+    font-size: 20px;
+    line-height: 40px;
+}

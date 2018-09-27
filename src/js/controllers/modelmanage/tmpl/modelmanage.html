@@ -1,0 +1,580 @@
+<div class="page-inner">
+    <div class="table-action">
+        <div class="pull-left" ng-show="userSwitchSrv.modeltrustee">
+            <button type="button" data-toggle="modal" class="btn btn-primary" ng-click="createModel()">
+                <i class="icon-aw-add-to2"></i>新建</button>
+            <button type="button" data-toggle="modal" ng-click="editModel()" class="btn btn-info" ng-disabled="!canEditModel">
+                <i class="icon-aw-modify"></i>编辑</button>
+            <button type="button" data-toggle="modal" ng-click="startUsingModel(checkedItems)" class="btn btn-info" ng-disabled="!canStartUsing">
+                <i class="icon-aw-start-up"></i>启用</button>
+            <button type="button" data-toggle="modal" ng-click="stopUsingModel(checkedItems)" class="btn btn-warning" ng-disabled="!canCloseUsing">
+                <i class="icon-aw-jy"></i>禁用</button>
+            <button type="button" data-toggle="modal" ng-click="deleteModel(checkedItems)" class="btn btn-warning" ng-disabled="!canDeleteModel">
+                <i class="icon-aw-delete"></i>删除</button>
+        </div>
+        <div class="pull-right">
+            <!-- <div class="dropdown" ng-show="userSwitchSrv.modeltrustee">
+                <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" ng-disabled="!canMoreOpt">模型应用
+                    <i class="icon-aw-angle-down-1"></i>
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <button ng-click="numberRecognize(checkedItems)">数字识别</button>
+                    </li>
+                    <li>
+                        <button ng-click="objectRecognize(checkedItems)">物体识别</button>
+                    </li>
+                </ul>
+            </div> -->
+            <div class="status-list">
+                <ui-select ng-model="systemStatusForm.name" ng-change="choiceDataStatus(systemStatusForm.name)" ng-disabled="canChoiceStatus">
+                    <ui-select-match placeholder='请选择'>
+                        {{$select.selected.name}}
+                    </ui-select-match>
+                    <ui-select-choices repeat="status in modelStatusList">
+                        <div ng-bind-html="status.name | highlight: $select.search"></div>
+                    </ui-select-choices>
+                </ui-select>
+            </div>
+            <div class="search-box">
+                <form name="searchForm" novalidate ng-keyup="applyGlobalSearch()">
+                    <button class="btn" type="submit" ng-disabled="searchForm.$invalid">
+                        <i class="icon-aw-search"></i>
+                    </button>
+                    <input type="text" class="form-control" autocomplete="off" maxlength="128" name="searchTerm" ng-model="globalSearchTerm" placeholder="搜索" />
+                </form>
+            </div>
+            <button class="btn btn-renovat" ng-click="refresh()">
+                <i class="icon-aw-refresh"></i>
+            </button>
+            <setting title-data="modelManageTitleData" site-title="modelManageName" table-data="taskListData" search-tearm="modelManageSearchTerm(obj)"></setting>
+        </div>
+    </div>
+    <div class="table-content">
+        <empty-tip empty-type="loadData"></empty-tip>
+        <table ng-table="tableParams" class="table" template-pagination="/tmpl/ngtablepagination.html">
+            <colgroup ng-if="!userSwitchSrv.modeltrustee">
+                <col width="12%">
+                <col width="12%">
+                <col width="13%">
+                <col width="13%">
+                <col width="13%">
+                <col width="13%">
+                <col width="13%">
+                <col width="13%">
+            </colgroup>
+            <colgroup ng-if="userSwitchSrv.modeltrustee">
+                <col width="4%">
+                <col width="13%">
+                <col width="13%">
+                <col width="14%">
+                <col width="14%">
+                <col width="14%">
+                <col width="14%">
+                <col width="14%">
+            </colgroup>
+            <tr ng-repeat="item in $data">
+                <td header="'headerCheckbox.html'" ng-if="userSwitchSrv.modeltrustee">
+                    <label class="checkbox">
+                        <input type="checkbox" ng-model="checkboxes.items[item.uuid]" />
+                        <i class="icon-aw-square"></i>
+                    </label>
+                </td>
+                <td data-title="dataTitles.name" sortable="'taskname'">
+                    <a ng-href="#/model/modeltrustee?id={{item.uuid}}" title="{{item.modelname}}" ng-if="modelManageTitleData[0].value">{{item.modelname}}</a>
+                </td>
+                <td data-title='"cn.storageVolume.user"|translate' ng-if="!userSwitchSrv.modeltrustee && modelManageTitleData[1].value" sortable="'namespace'">
+                    {{item.namespace}}
+                </td>
+                <td data-title="dataTitles.status" sortable="'modelrunstatus_ori'" ng-if="modelManageTitleData[2].value">
+                    <span class="status-area" ng-class="{'status-purple':item.modelrunstatus == 0,'status-green':item.modelrunstatus == 2,'status-blue':item.modelrunstatus == 5,'status-gray':item.modelrunstatus == 6 || item.modelrunstatus == 14,
+          'status-yellow':item.modelrunstatus == 7 || item.modelrunstatus == 11 || item.modelrunstatus == 15,'status-red':item.modelrunstatus == 1 || item.modelrunstatus == 8 || item.modelrunstatus == 9 || item.modelrunstatus == 10
+          || item.modelrunstatus == 13,'status-black':item.modelrunstatus == 12}">{{item.modelrunstatus_ori}}</span>
+                </td>
+                <td data-title="dataTitles.path" sortable="'serverip_ori'" ng-if="modelManageTitleData[3].value">{{item.serverip_ori}}</td>
+                <td data-title="dataTitles.port" sortable="'serverport_ori'" ng-if="modelManageTitleData[4].value">{{item.serverport_ori}}</td>
+                <td data-title="dataTitles.replica" sortable="'replicas'" ng-if="modelManageTitleData[5].value">{{item.replicas}}</td>
+                <td data-title="dataTitles.runningtime" sortable="'modelruntime'" ng-if="modelManageTitleData[6].value">{{item.modelruntime}}</td>
+                <td data-title="dataTitles.createtime" sortable="'setuptime_ori'" ng-if="modelManageTitleData[7].value">{{item.setuptime_ori}}</td>
+                <!-- <td data-title="dataTitles.createtime" sortable="'setuptime_ori'" ng-if="modelManageTitleData[7].value">{{item.setuptime_ori}}</td> -->
+            </tr>
+        </table>
+        <!-- 详情弹框 -->
+        <div ng-controller="detailCtrl">
+            <pane class="detail-body" animation="animation">
+                <div class="tab-content">
+                    <div class="detail-row">
+                        <div class="detail-title">
+                            <a class="an-close" ng-href="/#/model/modeltrustee">
+                                <i class="icon-aw-mail-reply"></i>
+                            </a>
+                            <span>{{modelDetailData.modelname}}{{"cn.common.detail"|translate}}</span>
+                        </div>
+                        <!-- <div class="detail-tab clearFix" ng-show="detailTabValue != '2'&&detailTabValue != '3'">
+                            <div class="detail-tab-item left-tab-item" ng-click="detailTabChange('basicinfo')" ng-class="{'active':detailTabValue == '0'}">基本信息</div>
+                            <div class="detail-tab-item right-tab-item" ng-click="detailTabChange('example')" ng-class="{'active':detailTabValue == '1'}">实例</div>
+                        </div>
+                        <div class="detail-info" ng-show="detailTabValue == '0'">
+                            <h4>基础信息</h4>
+                            <table class="table table-info column">
+                                <tr>
+                                    <td>名称</td>
+                                    <td>{{modelDetailData.modelname}}</td>
+                                    <td>引擎</td>
+                                    <td>{{modelDetailData.modelmetadata.session_train_engine}}</td>
+                                </tr>
+                                <tr>
+                                    <td>版本</td>
+                                    <td>{{modelDetailData.modelmetadata.session_train_engine_version}}</td>
+                                    <td>状态</td>
+                                    <td>{{modelDetailData.statusTranslate}}</td>
+                                </tr>
+                                <tr>
+                                    <td>运行时长</td>
+                                    <td>{{modelDetailData.modelruntime}}小时</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </table>
+                            <h4>配置</h4>
+                            <table class="table table-info column">
+                                <tr>
+                                    <td ng-if="modelDetailData.modelmetadata.session_gputype">{{modelDetailData.modelmetadata.session_gputype}}</td>
+                                    <td ng-if="modelDetailData.modelmetadata.session_cputype">{{modelDetailData.modelmetadata.session_cputype}}</td>
+                                    <td ng-if="modelDetailData.modelmetadata.session_gputype">CPU:{{modelDetailData.modelmetadata.session_cpu_num}}核，内存：{{modelDetailData.modelmetadata.session_memory_num}}G，副本数：{{modelDetailData.modelmetadata.replicas}}</td>
+                                    <td ng-if="modelDetailData.modelmetadata.session_cputype">CPU:{{modelDetailData.modelmetadata.session_cpu_num}}核，内存：{{modelDetailData.modelmetadata.session_memory_num}}G，副本数：{{modelDetailData.modelmetadata.replicas}}</td>
+                                </tr>
+                            </table>
+                            <h4>存储卷</h4>
+                            <table class="table table-info column">
+                                <tr>
+                                    <td>{{modelDetailData.volumename}}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="detail-info" ng-show="detailTabValue == '1'">
+                            <div ng-if="!showMinoterCanvas">
+                                <div class="table-action">
+                                    <div class="pull-right">
+                                        <div class="status-list">
+                                            <ui-select ng-model="systemStatusForm.detailName" ng-change="detailChoiceDataStatus(systemStatusForm.detailName)">
+                                                <ui-select-match placeholder='请选择'>
+                                                    {{$select.selected.name}}
+                                                </ui-select-match>
+                                                <ui-select-choices repeat="status in modelDetailStatusList">
+                                                    <div ng-bind-html="status.name | highlight: $select.search"></div>
+                                                </ui-select-choices>
+                                            </ui-select>
+                                        </div>
+                                        <div class="search-box">
+                                            <form name="searchForm" novalidate ng-keyup="modelDetailApplyGlobalSearch()">
+                                                <button class="btn" type="submit" ng-disabled="searchForm.$invalid">
+                                                    <i class="icon-aw-search"></i>
+                                                </button>
+                                                <input type="text" class="form-control" autocomplete="off" maxlength="128" name="searchTerm" ng-model="searchOption.modelDetailGlobalSearchTerm" placeholder="搜索" />
+                                            </form>
+                                        </div>
+                                        <button class="btn btn-renovat" ng-click="podRefresh()">
+                                            <i class="icon-aw-refresh"></i>
+                                        </button>
+                                        <setting title-data="modelDetailTitleData" site-title="modelDetailName" table-data="detailTableData" search-tearm="modelDetailSearchTerm(obj)"></setting>
+                                    </div>
+                                </div>
+                                <div class="table-content">
+                                    <empty-tip empty-type="detailLoadData" tip-id="'train-tip-msg'"></empty-tip>
+                                    <table ng-table="detailTable" class="table" template-pagination="/tmpl/ngtablepagination.html">
+                                        <colgroup>
+                                            <col width="15%">
+                                            <col width="15%">
+                                            <col width="15%">
+                                            <col width="15%">
+                                            <col width="20%">
+                                            <col width="20%">
+                                        </colgroup>
+                                        <tr ng-repeat="item in $data">
+                                            <td data-title="detailDataTitles.name" sortable="'name'" ng-if="modelDetailTitleData[0].value">{{item.name}}</td>
+                                            <td data-title="detailDataTitles.status" sortable="'status_ori'" ng-if="modelDetailTitleData[1].value">
+                                                <span ng-class="{'bg-green':item.status=='0','bg-red':item.status=='1'}">{{item.status_ori}}</span>
+                                            </td>
+                                            <td data-title="detailDataTitles.pod" sortable="'podIP'" ng-if="modelDetailTitleData[2].value">{{item.podIP}}</td>
+                                            <td data-title="detailDataTitles.host" sortable="'hostIP'" ng-if="modelDetailTitleData[3].value">{{item.hostIP}}</td>
+                                            <td data-title="detailDataTitles.createdtime" sortable="'startTime_ori'" ng-if="modelDetailTitleData[4].value">{{item.startTime_ori}}</td>
+                                            <td data-title="detailDataTitles.option" sortable="'tasktrainlimittime'">
+                                                <a ng-click="checkLog(item.name, item.containers, taskDetailData.taskrunstatus, item.status)" ng-class="{'check-log':!item.containers||item.containers.length<=0}" class="check-log-btn">查看日志</a>
+                                                <a ng-click="checkLog(item.name, item.containers, modelDetailData.modelrunstatus, item.status)" ng-class="{'check-log':!item.containers||item.containers.length <= 0}" class="check-log-btn">查看日志</a>
+                                                <a ng-click="watchMinoter(item.name)" class="check-log-btn">查看监控</a>
+                                                <a ng-click="watchConsol(item.name, item.containers)" class="check-log-btn">控制台</a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="monitor-view" ng-if="showMinoterCanvas">
+                                <div class="back-to-details">
+                                    <i class="icon-aw-angle-left-1"></i>
+                                    <span ng-click="backToDetails()">返回</span>
+                                </div>
+                                <div class="monitor-btn-group">
+                                    <ul class="time-btn-list">
+                                        <li ng-class="{'active':activeFlag == '1h'}" ng-click="changeDataByTime('1h','300')">最近1小时</li>
+                                        <li ng-class="{'active':activeFlag == '12h'}" ng-click="changeDataByTime('12h','3600')">最近12小时</li>
+                                        <li ng-class="{'active':activeFlag == '1d'}" ng-click="changeDataByTime('1d','7200')">最近1天</li>
+                                        <li ng-class="{'active':activeFlag == '7d'}" ng-click="changeDataByTime('7d','86400')">最近1周</li>
+                                    </ul>
+                                </div>
+                                <div class="col-12">
+                                    <div class="box layout-grid areaChart">
+                                        <div class="col-6" ng-repeat="item in resInfo">
+                                            <div class="inner">
+                                                <div class="no-data" ng-if="!item.showNoData">暂无数据</div>
+                                                <monitor-area-stack chart-title="item.title" data="item.data"></monitor-area-stack>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="detail-info" ng-show="detailTabValue == '2'">
+                            <span class="log-return-btn" ng-click="logReturn()"><i class="icon-aw-angle-left"></i>返回</span>
+                            <div class="log-container-select">
+                                <ui-select ng-model="logForm.container" ng-change="logChange(detailLogPodName, logForm.container)">
+                                    <ui-select-match placeholder="请选择container">{{$select.selected}}</ui-select-match>
+                                    <ui-select-choices repeat="item in detailLogContainers">
+                                        <div ng-bind-html="item | highlight: $select.search"></div>
+                                    </ui-select-choices>
+                                </ui-select>
+                            </div>
+                            <div class="log-container">
+                                <div ng-repeat="item in detailLogInfo track by $index">{{item}}</div>
+                            </div>
+                        </div>
+                        <div class="detail-info" ng-show="detailTabValue == '3'">
+                            <span class="log-return-btn" ng-click="logReturn()"><i class="icon-aw-angle-left"></i>返回</span>
+                            <div class="log-container-select">
+                                <ui-select ng-model="logForm.container" ng-change="logChange(detailLogPodName, logForm.container)">
+                                    <ui-select-match placeholder="请选择container">{{$select.selected}}</ui-select-match>
+                                    <ui-select-choices repeat="item in detailLogContainers">
+                                        <div ng-bind-html="item | highlight: $select.search"></div>
+                                    </ui-select-choices>
+                                </ui-select>
+                            </div>
+                            <div class="log-container">
+                                <iframe ng-src="{{someUrl}}" seamless="seamless" height="100%" width="100%"></iframe>
+                            </div>
+                        </div> -->
+                        <div class="tab-box">
+                            <ul class="nav nav-tabs nav-justified">
+                                <li ng-class="{'active':detailTabValue == '0'}" ng-click="detailTabChange('basicinfo')">
+                                    <a>基本信息</a>
+                                </li>
+                                <li ng-class="{'active':detailTabValue == '1'}" ng-click="detailTabChange('example')">
+                                    <a>实例</a>
+                                </li>
+                                <li ng-class="{'active':detailTabValue == '2'}" ng-click="detailTabChange('log')">
+                                    <a>日志</a>
+                                </li>
+                            </ul>
+                            <div class="tab-content">
+                                <div class="tab-pane" ng-class="{'active':detailTabValue == '0'}">
+                                    <h4>基础信息</h4>
+                                    <table class="table table-info column">
+                                        <tr>
+                                            <td>名称</td>
+                                            <td>{{modelDetailData.modelname}}</td>
+                                            <td>引擎</td>
+                                            <td>{{modelDetailData.modelmetadata.session_train_engine}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>版本</td>
+                                            <td>{{modelDetailData.modelmetadata.session_train_engine_version}}</td>
+                                            <td>状态</td>
+                                            <td>{{modelDetailData.statusTranslate}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>运行时长</td>
+                                            <td>{{modelDetailData.modelruntime}}小时</td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                    <h4>配置</h4>
+                                    <table class="table table-info column">
+                                        <tr>
+                                            <td ng-if="modelDetailData.modelmetadata.session_gputype">{{modelDetailData.modelmetadata.session_gputype}}</td>
+                                            <td ng-if="modelDetailData.modelmetadata.session_cputype">{{modelDetailData.modelmetadata.session_cputype}}</td>
+                                            <td ng-if="modelDetailData.modelmetadata.session_gputype">CPU:{{modelDetailData.modelmetadata.session_cpu_num}}核，内存：{{modelDetailData.modelmetadata.session_memory_num}}G，副本数：{{modelDetailData.replicas}}</td>
+                                            <td ng-if="modelDetailData.modelmetadata.session_cputype">CPU:{{modelDetailData.modelmetadata.session_cpu_num}}核，内存：{{modelDetailData.modelmetadata.session_memory_num}}G，副本数：{{modelDetailData.replicas}}</td>
+                                        </tr>
+                                    </table>
+                                    <h4>存储卷</h4>
+                                    <table class="table table-info column">
+                                        <tr>
+                                            <td>{{modelDetailData.volumename}}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="tab-pane" ng-class="{'active':detailTabValue == '1'}">
+                                    <div ng-if="showModel">
+                                        <div class="table-action">
+                                            <div class="pull-right">
+                                                <div class="status-list">
+                                                    <ui-select ng-model="systemStatusForm.detailName" ng-change="detailChoiceDataStatus(systemStatusForm.detailName)">
+                                                        <ui-select-match placeholder='请选择'>
+                                                            {{$select.selected.name}}
+                                                        </ui-select-match>
+                                                        <ui-select-choices repeat="status in modelDetailStatusList">
+                                                            <div ng-bind-html="status.name | highlight: $select.search"></div>
+                                                        </ui-select-choices>
+                                                    </ui-select>
+                                                </div>
+                                                <div class="search-box">
+                                                    <form name="searchForm" novalidate ng-keyup="modelDetailApplyGlobalSearch()">
+                                                        <button class="btn" type="submit" ng-disabled="searchForm.$invalid">
+                                                            <i class="icon-aw-search"></i>
+                                                        </button>
+                                                        <input type="text" class="form-control" autocomplete="off" maxlength="128" name="searchTerm" ng-model="searchOption.modelDetailGlobalSearchTerm" placeholder="搜索" />
+                                                    </form>
+                                                </div>
+                                                <button class="btn btn-renovat" ng-click="podRefresh()">
+                                                    <i class="icon-aw-refresh"></i>
+                                                </button>
+                                                <setting title-data="modelDetailTitleData" site-title="modelDetailName" table-data="detailTableData" search-tearm="modelDetailSearchTerm(obj)"></setting>
+                                            </div>
+                                        </div>
+                                        <div class="table-content">
+                                            <empty-tip empty-type="detailLoadData" tip-id="'train-tip-msg'"></empty-tip>
+                                            <table ng-table="detailTable" class="table" template-pagination="/tmpl/ngtablepagination.html">
+                                                <colgroup>
+                                                    <col width="15%">
+                                                    <col width="15%">
+                                                    <col width="15%">
+                                                    <col width="15%">
+                                                    <col width="20%">
+                                                    <col width="20%">
+                                                </colgroup>
+                                                <tr ng-repeat="item in $data">
+                                                    <td data-title="detailDataTitles.name" sortable="'name'" ng-if="modelDetailTitleData[0].value">{{item.name}}</td>
+                                                    <td data-title="detailDataTitles.status" sortable="'status_ori'" ng-if="modelDetailTitleData[1].value">
+                                                        <span ng-class="{'bg-green':item.status=='0','bg-red':item.status=='1'}">{{item.status_ori}}</span>
+                                                    </td>
+                                                    <td data-title="detailDataTitles.pod" sortable="'podIP'" ng-if="modelDetailTitleData[2].value">{{item.podIP}}</td>
+                                                    <td data-title="detailDataTitles.host" sortable="'hostIP'" ng-if="modelDetailTitleData[3].value">{{item.hostIP}}</td>
+                                                    <td data-title="detailDataTitles.createdtime" sortable="'startTime_ori'" ng-if="modelDetailTitleData[4].value">{{item.startTime_ori}}</td>
+                                                    <td data-title="detailDataTitles.option" sortable="'tasktrainlimittime'">
+                                                        <!-- <a ng-click="checkLog(item.name, item.containers, taskDetailData.taskrunstatus, item.status)" ng-class="{'check-log':!item.containers||item.containers.length<=0}" class="check-log-btn">查看日志</a>
+                                                        <a ng-click="checkLog(item.name, item.containers, modelDetailData.modelrunstatus, item.status)" ng-class="{'check-log':!item.containers||item.containers.length <= 0}" class="check-log-btn">查看日志</a> -->
+                                                        <a ng-click="watchMinoter(item.name)" class="check-log-btn">查看监控</a>
+                                                        <a ng-click="watchConsol(item.name, item.containers)" class="check-log-btn">控制台</a>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="monitor-view" ng-if="showMinoterCanvas">
+                                        <div class="back-to-details">
+                                            <i class="icon-aw-angle-left-1"></i>
+                                            <span ng-click="backToDetails()">返回</span>
+                                        </div>
+                                        <div class="monitor-btn-group">
+                                            <ul class="time-btn-list">
+                                                <li ng-class="{'active':activeFlag == '1h'}" ng-click="changeDataByTime('1h','300')">最近1小时</li>
+                                                <li ng-class="{'active':activeFlag == '12h'}" ng-click="changeDataByTime('12h','3600')">最近12小时</li>
+                                                <li ng-class="{'active':activeFlag == '1d'}" ng-click="changeDataByTime('1d','7200')">最近1天</li>
+                                                <li ng-class="{'active':activeFlag == '7d'}" ng-click="changeDataByTime('7d','86400')">最近1周</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="box layout-grid areaChart">
+                                                <div class="col-6" ng-repeat="item in resInfo">
+                                                    <div class="inner">
+                                                        <div class="no-data" ng-if="!item.showNoData">暂无数据</div>
+                                                        <monitor-area-stack chart-title="item.title" data="item.data"></monitor-area-stack>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div ng-if="showWebshell">
+                                      <span class="log-return-btn" ng-click="logReturn()"><i class="icon-aw-angle-left"></i>返回</span>
+                                      <div class="log-container-select">
+                                          <ui-select ng-model="logForm.container" ng-change="logChange(detailLogPodName, logForm.container)">
+                                              <ui-select-match placeholder="请选择container">{{$select.selected}}</ui-select-match>
+                                              <ui-select-choices repeat="item in detailLogContainers">
+                                                  <div ng-bind-html="item | highlight: $select.search"></div>
+                                              </ui-select-choices>
+                                          </ui-select>
+                                      </div>
+                                      <div class="log-container">
+                                          <iframe ng-src="{{someUrl}}" seamless="seamless" height="100%" width="100%"></iframe>
+                                      </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane" ng-class="{'active':detailTabValue == '2'}">
+                                    <div class="log-container">
+                                        <div ng-repeat="item in logLists track by $index">{{item.log}}</div>
+                                        <div class="text-center">
+                                            <button type="button" class="btn btn-info" ng-disabled="canGetLog" ng-if="showLogBtn" ng-click="getMoreLog()">{{"cn.modelManage.moreLog"|translate}}</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </pane>
+        </div>
+    </div>
+</div>
+<script type="text/ng-template" id="headerCheckbox.html">
+    <label class="checkbox">
+        <input type="checkbox" ng-model="checkboxes.checked" class="select-all" value="" />
+        <i class="icon-aw-square"></i>
+    </label>
+</script>
+<script type="text/ng-template" id="createModel.html">
+    <div class="modal-common">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="$dismiss()">×</button>
+            <h3 class="modal-title  clearfix">新建模型托管</h3>
+        </div>
+        <div class="modal-body">
+            <form name="createmodelForm" class="model-form" novalidate>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>模型名称：</label>
+                    <div class="controls">
+                        <input class="form-controls" name="modelname" ng-model="modelForm.modelname" placeholder="请输入模型名称" ng-pattern="/^[a-z][-a-z0-9]*[a-z]$/" ng-maxlength="32" required ng-change="choiceName(modelForm.modelname)"/>
+                        <div class="error" ng-messages="(createmodelFormValid ||createmodelForm.modelname.$dirty) && createmodelForm.modelname.$error">
+                            <span class="error" ng-message="pattern">只能输入小写字母、数字和横线，且首尾为小写字母</span>
+                            <span class="error" ng-message="required">必填项</span>
+                            <span class="error" ng-message="maxlength">最大长度为32位</span>
+                        </div>
+                        <div class="error" ng-if="hadSameName">
+                            <span class="error">{{'cn.configmanage.checkInfo.sameName'|translate}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>引擎选择：</label>
+                    <div class="controls">
+                        <div class="add-item">
+                            <ui-select ng-model="modelForm.session_train_engine" name="Taskengine" ng-change="getVersionData($select.selected.uuid)" required>
+                                <ui-select-match placeholder="请选择引擎">{{$select.selected.name}}</ui-select-match>
+                                <ui-select-choices repeat="Taskengine in TaskengineData">
+                                    <div ng-bind-html="Taskengine.name | highlight: $select.search"></div>
+                                </ui-select-choices>
+                            </ui-select>
+                            <div class="error" ng-messages="(createmodelFormValid || createmodelForm.Taskengine.$dirty) && createmodelForm.Taskengine.$error">
+                                <span class="error" ng-message="required">必填项</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>版本选择：</label>
+                    <div class="controls">
+                        <div class="add-item">
+                            <ui-select ng-model="modelForm.session_train_engine_version" name="version" required>
+                                <ui-select-match placeholder="请选择版本">{{$select.selected.version}}</ui-select-match>
+                                <ui-select-choices repeat="version in versionListData">
+                                    <div ng-bind-html="version.version | highlight: $select.search"></div>
+                                </ui-select-choices>
+                            </ui-select>
+                            <div class="error" ng-messages="(createmodelFormValid ||createmodelForm.version.$dirty) && createmodelForm.version.$error">
+                                <span class="error" ng-message="required">必填项</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>配置：</label>
+                    <div class="controls">
+                        <div class="create-train-type">
+                            <div class="type-content session-content">
+                                <ui-select ng-model="modelForm.session_cputype" name="sessionCputype" ng-change="seessionTypeChange()" required>
+                                    <ui-select-match placeholder="请选择机型">{{$select.selected.name}}</ui-select-match>
+                                    <ui-select-choices repeat="type in allTypeData">
+                                        <div ng-bind-html="type.name | highlight: $select.search"></div>
+                                    </ui-select-choices>
+                                </ui-select>
+                                <div class="error type-bottom" ng-messages="(createmodelFormValid ||createmodelForm.sessionCputype.$dirty) && createmodelForm.sessionCputype.$error">
+                                    <span class="error" ng-message="required">必填项</span>
+                                </div>
+                                <div class="control-group">
+                                    <label class="type-control-label">每台CPU数量(核)：</label>
+                                    <div class="controls clearFix type-control">
+                                        <change-num number="modelForm.session_cpu_num" addnum="modelFormInfo.addNumber" pattern="modelFormInfo.cpuPattern" names="modelFormInfo.cpuName" createtrainform="createmodelForm" mydesc="modelFormInfo.cpuDesc"></change-num>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label class="type-control-label">每台内存大小(GB)：</label>
+                                    <div class="controls clearFix type-control">
+                                        <change-num number="modelForm.session_memory_num" addnum="modelFormInfo.memoryAddNumber" pattern="modelFormInfo.memoryPattern" names="modelFormInfo.memoryName" createtrainform="createmodelForm" mydesc="modelFormInfo.memoryDesc"></change-num>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label class="type-control-label">副本数：</label>
+                                    <div class="controls clearFix type-control">
+                                        <change-num number="modelForm.replicas" addnum="modelFormInfo.memoryAddNumber" pattern="modelFormInfo.memoryPattern" names="modelFormInfo.replicasName" createtrainform="createmodelForm" mydesc="modelFormInfo.memoryDesc"></change-num>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>存储卷：</label>
+                    <div class="controls">
+                        <div class="add-item">
+                            <ui-select ng-model="modelForm.volume_groups[0]" name="volume" required>
+                                <ui-select-match placeholder="请选择存储卷">{{$select.selected.pvc}}</ui-select-match>
+                                <ui-select-choices repeat="volume in allVolumeData">
+                                    <div ng-bind-html="volume.pvc | highlight: $select.search"></div>
+                                </ui-select-choices>
+                            </ui-select>
+                            <div class="error" ng-messages="(createmodelFormValid ||createmodelForm.volume.$dirty) && createmodelForm.volume.$error">
+                                <span class="error" ng-message="required">必填项</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div ng-if="overQuota" class="model-quota-tip">
+                <div ng-if="cpuOverQuota" class="error">CPU超过配额，请修改后重试</div>
+                <!-- <div class="error" ng-if="createQuota.gpuOverQuota">GPU超过配额，请修改后重试</div> -->
+                <div ng-if="memoryOverQuota" class="error">内存超过配额，请修改后重试</div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-info" type="button" ng-click="confirm(createmodelForm)">{{"cn.action.ok"|translate}}</button>
+            <button class="btn btn-default" type="button" ng-click="$dismiss()">{{"cn.action.cancel"|translate}}</button>
+        </div>
+    </div>
+</script>
+<script type="text/ng-template" id="editModel.html">
+    <div class="modal-common">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="$dismiss()">×</button>
+            <h3 class="modal-title">编辑模型托管</h3>
+        </div>
+        <div class="modal-body edit-model-body">
+            <form name="editModelFrom" novalidate>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>副本数：</label>
+                    <div class="controls clearFix type-control">
+                        <change-num number="modelForm.replicas" addnum="modelFormInfo.replicasaddNumber" pattern="modelFormInfo.replicasPattern" names="modelFormInfo.replicasName" createtrainform="editModelFrom" mydesc="modelFormInfo.replicasDesc"></change-num>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-info" ng-click="confirmEdit(editModelFrom)">确定</button>
+            <button type="button" class="btn btn-default" ng-click="$dismiss()">取消</button>
+        </div>
+    </div>
+</script>

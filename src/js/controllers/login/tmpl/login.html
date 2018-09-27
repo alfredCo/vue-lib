@@ -1,0 +1,70 @@
+<div class="login-main clearfix">
+  <div class="container">
+    <div class="hadLogined-msg" ng-if="hadLoginedMsg"><sapn>{{'cn.auth.loginAgain'|translate}}</sapn></div>
+    <div class="login-form">
+      <form name="loginForm" class="sign-box" ng-submit="submitForm(loginForm.$valid)" novalidate>
+        <div class="logo"></div>
+        <fieldset>
+          <div class="control-group" ng-class="{'focus':namefocus}">
+            <input class="form-controls"
+                   ng-focus="namefocus=true;loginCfmed=false"
+                   ng-blur="namefocus=false"
+                   autocomplete="off"
+                   type="text"
+                   name="username"
+                   id="input_username"
+                   ng-model="login.username"
+                   placeholder="{{'cn.auth.inputusername'|translate}}"
+                   required
+            />
+            <label class="control-label" ng-class="{'focused':focused}">
+              <i class="icon-aw-user"></i>
+            </label>
+            <div class="error-messages"  ng-if="interacted(loginForm.username)"  ng-messages="loginForm.username.$error">
+              <div ng-message="required">{{'cn.auth.inputusername'|translate}}</div>
+            </div>
+          </div>
+          <div class="control-group" ng-class="{'focus':passwordfocus}">
+            <input class="form-controls"
+                 ng-focus="passwordfocus=true;loginCfmed=false"
+                 ng-blur="passwordfocus=false"
+                         type="password"
+                         name="password"
+                         id="input_password"
+                         ng-model="login.password"
+                         autocomplete="new-password"
+                         placeholder="{{'cn.auth.inputpasswd'|translate}}"
+                         required
+                         />
+             <label class="control-label" ng-class="{'focused':focused}">
+               <i class="icon-aw-turn-off"></i>
+             </label>
+            <div class="error-messages" ng-if="interacted(loginForm.password)" ng-messages="loginForm.password.$error">
+              <div ng-message="required">{{'cn.auth.inputpasswd'|translate}}</div>
+            </div>
+          </div>
+          <div class="btn-item">
+            <button type="submit" class="btn btn-primary" ng-disabled="loginForm.$invalid || loginCfmed">{{'cn.auth.login'|translate}}<span ng-show="logining"><i class="icon-aw-load aw-spin"></i></span></button>
+          </div>
+          <div class="signuperror" ng-show="loginError>0" >
+            <div ng-if="loginError===1 && loginCfmed">
+              {{'cn.auth.loginFiled'|translate}}
+            </div>
+            <div ng-if="loginError===2 && loginCfmed">
+              {{'cn.auth.servererror'|translate}}
+            </div>
+            <div ng-if="loginError===3 && loginCfmed">
+              {{'cn.auth.noProject'|translate}}
+            </div>
+          </div>
+        </fieldset>
+        <!-- <div class="link-wrap">
+          <div class="link-cont">
+            <a href="#">{{'cn.auth.forgetpasswd'|translate}}</a>
+            <p class="pull-right">{{'cn.auth.aws_account'|translate}}<a href="">{{'cn.auth.register'|translate}}&gt;&gt;</i></a></p>
+          </div>
+        </div> -->
+      </form>
+    </div>
+  </div>
+</div>

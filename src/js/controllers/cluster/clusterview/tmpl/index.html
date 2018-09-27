@@ -1,0 +1,91 @@
+<div class="page-inner cluster-view">
+  <div class="box permit">
+    <div class="col-3">
+      <div class="user-box inner">
+        <div class="cluster-item">
+          <span class="first">
+            <i class="icon-aw-pm navy-dark small"></i>
+          </span>
+          <div class="cluster-right">
+            <span>{{cluterInfo.nodeNum}}</span>
+            <a>主机数量</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-3">
+      <div class="user-box inner">
+        <div class="cluster-item">
+          <span class="second">
+            <i class=" icon-aw-user-group navy-dark small"></i>
+          </span>
+          <div class="cluster-right">
+            <span>{{userCount}}</span>
+            <a>用户数量</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-3">
+      <div class="user-box inner">
+        <div class="cluster-item">
+          <span class="third">
+            <i class=" icon-aw-rqjq navy-dark small"></i>
+          </span>
+          <div class="cluster-right">
+            <span>{{cluterInfo.trainTaskNum}}</span>
+            <a>训练集群数</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-3">
+      <div class="user-box inner">
+        <div class="cluster-item">
+          <span class="four">
+            <i class="icon-aw-mirroring navy-dark small"></i>
+          </span>
+          <div class="cluster-right">
+            <span>{{cluterInfo.imageNum}}</span>
+            <a>镜像数量</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="box no-border-box">
+    <div class="col-12">
+      <div class="inner">
+        <h5>资源使用率</h5>
+      <div class="chart-wrap">
+        <div class="control-group">
+          <label class="control-label">CPU核</label>
+          <div class="controls">
+            <div  id="custerQuota1" quota-bar bardata="quotaData.cpu"></div>
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">内存</label>
+          <div class="controls">
+            <div  id="custerQuota2" quota-bar bardata="quotaData.memory"></div>
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">存储</label>
+          <div class="controls">
+            <div  id="custerQuota3" quota-bar bardata="quotaData.storage"></div>
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">GPU</label>
+          <div class="controls">
+            <div  id="custerQuota4" quota-bar bardata="quotaData.gpu"></div>
+          </div>
+        </div>
+      </div>
+      </div>
+        
+    </div>
+
+  </div>
+</div>

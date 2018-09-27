@@ -1,0 +1,10 @@
+<div class="pro-bar" >
+    <div class="progress-step">
+        <div class="progress-base color-0" ng-style="bundwidth">
+            <div class="an-to"></div>
+            <div class="progress-title">{{precent}}%</div>
+            <div class="progress-loading" ng-if="getPage"><span>{{'cn.dataSetManage.placeholder.loading'|translate}}</span></div>
+            <div class="progress-loading" ng-if="!getPage"><span class="red">{{'cn.dataSetManage.placeholder.refresh'|translate}}</span></div>
+        </div>
+    </div>
+</div>

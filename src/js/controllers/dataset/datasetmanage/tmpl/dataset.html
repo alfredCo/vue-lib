@@ -1,0 +1,270 @@
+<div class="page-inner">
+    <div class="table-action">
+        <div class="pull-left" ng-show="userSwitchSrv.datasetmanage">
+            <button type="button" data-toggle="modal" class="btn btn-primary" ng-click="createDataSet()">
+                <i class="icon-aw-add-to2"></i>{{'cn.dataSetManage.btnGroup.createDataSet'|translate}}</button>
+            <button type="button" data-toggle="modal" class="btn btn-info" ng-disabled="!canFileManage" ng-click="openVal(checkedItems)">
+                <i class="icon-aw-modify"></i>{{'cn.dataSetManage.btnGroup.fileManage'|translate}}</button>
+            <div class="dropdown">
+                <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" ng-disabled="!canMoreOpt">{{'cn.dataSetManage.btnGroup.moreOption'|translate}}
+                    <i class="icon-aw-angle-down-1"></i>
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <button ng-click="editDataSet(checkedItems)" ng-disabled="!canEditItem">{{'cn.dataSetManage.btnGroup.editData'|translate}}</button>
+                    </li>
+                    <li>
+                        <button ng-click="delDataSet(checkedItems)" ng-disabled="!canDeleteItem">{{'cn.dataSetManage.btnGroup.delete'|translate}}</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="pull-right">
+            <div class="search-box">
+                <form name="searchForm" novalidate ng-keyup="applyGlobalSearch()">
+                    <button class="btn" type="submit" ng-disabled="searchForm.$invalid">
+                        <i class="icon-aw-search"></i>
+                    </button>
+                    <input type="text" class="form-control" autocomplete="off" maxlength="128" name="searchTerm" ng-model="globalSearchTerm"
+                        placeholder="{{'cn.action.search'|translate}}" />
+                </form>
+            </div>
+            <button class="btn btn-renovat" ng-click="refresh()">
+                <i class="icon-aw-refresh"></i>
+            </button>   
+            <setting title-data="titleData" site-title="titleName" table-data="dataSetList" search-tearm="dataSetSearchTearm(obj)"></setting>                      
+        </div>
+    </div>
+    <div class="table-content">
+        <empty-tip empty-type="loadData"></empty-tip>
+        <table ng-table="tableParams" class="table" template-pagination="/tmpl/ngtablepagination.html" >
+            <tr ng-repeat="item in $data">
+                <td header="'headerCheckbox.html'">
+                    <label class="checkbox">
+                        <input type="checkbox" ng-model="checkboxes.items[item.id]"/>
+                        <i class="icon-aw-square"></i>
+                    </label>
+                </td>
+                <td data-title="dataTitles.name" sortable="'pvcname'" ng-if="titleData[0].value"><span class="word-break"><a ng-href="#/dataset/datasetmanage?id={{item.pvcname}}">{{item.pvcname}}</a></span></td>
+                <td data-title="dataTitles.taskAndRoute" sortable="'taskAndRoute'" ng-if="titleData[1].value">
+                    <div ng-repeat="mount in item.mountList">
+                        <span class="word-break">{{mount}}</span>
+                    </div>
+                </td>               
+                <td data-title="dataTitles.desc" sortable="'pvcdescribe'" ng-if="titleData[2].value"><span class="word-break">{{item.pvcdescribe}}</span></td>
+                <td data-title="dataTitles.volumesize" sortable="'pvcstorage'" ng-if="titleData[3].value"><span class="word-break">{{item.pvcstorage}}</span></td>
+                <td data-title="dataTitles.permissions" sortable="'permissions'" ng-if="titleData[4].value"><span class="word-break">{{item.permissions}}</span></td>
+                <td data-title="dataTitles.pvcstatus" sortable="'pvcstatus'" ng-if="titleData[5].value"><span class="word-break">{{item.pvcstatus}}</span></td>
+                <td data-title="dataTitles.createTime" sortable="'createtime'" ng-if="titleData[6].value"><span class="word-break">{{item.createtime}}</span></td>
+                <td data-title="dataTitles.createUser" sortable="'pvcowner'" ng-if="titleData[7].value"><span class="word-break">{{item.pvcowner}}</span></td>
+            </tr>
+        </table>
+    </div>
+    <div ng-controller="detailCtrl">
+        <pane class="detail-body" animation="animation">
+            <div class="tab-content">
+                <div class="detail-row">
+                    <div class="detail-title">
+                        <a class="an-close" ng-href="#/dataset/datasetmanage">
+                            <i class="icon-aw-mail-reply"></i>
+                        </a>
+                        <span>{{detailInfo.name}}{{"cn.common.detail"|translate}}</span>
+                    </div>
+                    <div class="detail-info">
+                        <h5 class="data-set-detail-title">{{'cn.configmanage.detailInfo.basicInfo'|translate}}</h5>
+                        <form name="descForm" class="model-form data-set-desc">
+                            <div class="control-group">
+                                <textarea class="form-controls" ng-model="detailInfo.pvcdescribetxt" name="decrtxt" placeholder="{{'cn.configmanage.detailInfo.descInfo'|translate}}" ng-maxlength="1000">
+                                </textarea> 
+                                <div class="error" ng-messages="(descFormValid ||descForm.decrtxt.$dirty) && descForm.decrtxt.$error">
+                                    <span class="error" ng-message="maxlength">{{'cn.errors.limit_length_1000'|translate}}</span>
+                                </div> 
+                            </div>
+                        </form>
+                        <button type="button" class="btn btn-primary" ng-disabled="canEditDecr" ng-click="confirmDesc(descForm)">{{'cn.action.ok'|translate}}</button>
+                    </div>
+                </div>
+            </div>
+        </pane>
+    </div>
+</div>
+<script type="text/ng-template" id="headerCheckbox.html">
+    <label class="checkbox">
+        <input type="checkbox" ng-model="checkboxes.checked" class="select-all"/>
+        <i class="icon-aw-square"></i>
+    </label>
+</script>
+<script type="text/ng-template" id="createDataSet.html">
+    <div class="modal-common dataset-manage">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="$dismiss()">×</button>
+            <h3 class="modal-title clearfix">{{modalTitle}}</h3>
+        </div>
+        <div class="modal-body">
+            <form name="createItemForm" class="model-form" novalidate>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>{{'cn.dataSetManage.dataTitles.name'|translate}}：</label>
+                    <div class="controls">
+                        <input class="form-controls" name="name" ng-model="formData.name" placeholder="{{'cn.dataSetManage.placeholder.dataSetName'|translate}}" ng-pattern="/^[a-z][a-z0-9-]{0,62}[a-z]$/" required ng-change="changeName(formData.name)"/>
+                        <div class="error" ng-messages="(createItemFormValid ||createItemForm.name.$dirty) && createItemForm.name.$error">
+                            <span class="error" ng-message="pattern">{{'cn.errors.limit_str_64'|translate}}</span>
+                            <span class="error" ng-message="required">{{'cn.errors.required'|translate}}</span>
+                        </div>
+                        <div class="error" ng-if="hadSameName">
+                            <span class="error">{{'cn.dataSetManage.checkInfo.sameName'|translate}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>{{'cn.dataSetManage.dataTitles.desc'|translate}}：</label>
+                    <div class="controls">
+                        <input class="form-controls" name="desc" ng-model="formData.desc" placeholder="{{'cn.dataSetManage.placeholder.dataSetDesc'|translate}}" ng-maxlength="255" required/>
+                        <div class="error" ng-messages="(createItemFormValid ||createItemForm.desc.$dirty) && createItemForm.desc.$error">
+                            <span class="error" ng-message="required">{{'cn.errors.required'|translate}}</span>
+                            <span class="error" ng-message="maxlength">{{'cn.errors.maxlength255'|translate}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>{{'cn.dataSetManage.dataTitles.volumesize'|translate}}：</label>
+                    <div class="controls">
+                        <input class="form-controls volumes-size" name="volumes" ng-model="formData.volumes" placeholder="{{'cn.dataSetManage.placeholder.volumesize'|translate}}" minmax-chk max="2048" min="1" required/>
+                        <span class="size-num">GB</span>
+                        <div class="error" ng-messages="(createItemFormValid ||createItemForm.volumes.$dirty) && createItemForm.volumes.$error">
+                            <span class="error" ng-message="required">{{'cn.errors.required'|translate}}</span>
+                            <span class="error" ng-message="minmaxChk">{{'cn.errors.limit_2048'|translate}}</span>                                                       
+                        </div>
+                    </div>
+                </div>    
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>{{'cn.dataSetManage.dataTitles.permissions'|translate}}：</label>
+                    <div class="controls">
+                        <ui-select ng-model="formData.permissions" name="permissions" required ng-change="permissionsChange(formData.permissions)">
+                            <ui-select-match placeholder="{{'cn.dataSetManage.placeholder.permissions'|translate}}">
+                                {{$select.selected.name}}
+                            </ui-select-match>
+                            <ui-select-choices repeat="permissions in allowList">
+                                <div ng-bind-html="permissions.name | highlight: $select.search"></div>
+                            </ui-select-choices>
+                        </ui-select>
+                        <div class="error" ng-messages="(createItemFormValid ||createItemForm.permissions.$dirty) && createItemForm.permissions.$error">
+                            <span class="error" ng-message="required">{{'cn.errors.required'|translate}}</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- <div class="control-group school-group" ng-if="choiceSchool">
+                    <label class="control-label">
+                        <span class="red">*</span>{{'cn.dataSetManage.dataTitles.school'|translate}}：</label>
+                    <div class="controls">
+                        <ui-select ng-model="formData.school" name="school" required ng-change="schoolChange(formData.school)">
+                            <ui-select-match placeholder="{{'cn.dataSetManage.placeholder.school'|translate}}">
+                                {{$select.selected.name}}
+                            </ui-select-match>
+                            <ui-select-choices repeat="school in schoolList">
+                                <div ng-bind-html="school.name | highlight: $select.search"></div>
+                            </ui-select-choices>
+                        </ui-select>
+                        <div class="error" ng-messages="(createItemFormValid ||createItemForm.school.$dirty) && createItemForm.school.$error">
+                            <span class="error" ng-message="required">{{'cn.errors.required'|translate}}</span>
+                        </div>
+                    </div>
+                </div> -->
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-info" ng-click="confirmCreate(createItemForm)">{{'cn.action.ok'|translate}}</button>
+            <button type="button" class="btn btn-default" ng-click="$dismiss()">{{'cn.action.cancel'|translate}}</button>
+        </div>
+    </div>
+</script>
+<script type="text/ng-template" id="editDataSet.html">
+    <div class="modal-common dataset-manage">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="$dismiss()">×</button>
+            <h3 class="modal-title clearfix">{{modalTitle}}</h3>
+        </div>
+        <div class="modal-body">
+            <form name="editItemForm" class="model-form" novalidate>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>{{'cn.dataSetManage.dataTitles.name'|translate}}：</label>
+                    <div class="controls">
+                        <input class="form-controls" name="name" ng-model="formData.name" placeholder="{{'cn.dataSetManage.placeholder.dataSetDesc'|translate}}" ng-pattern="/^[a-z][a-z0-9-]{0,62}[a-z]$/" required ng-disabled="true"/>
+                        <div class="error" ng-messages="(editItemFormValid ||editItemForm.name.$dirty) && editItemForm.name.$error">
+                            <span class="error" ng-message="pattern">{{'cn.errors.limit_str_64'|translate}}limit_str_64</span>
+                            <span class="error" ng-message="required">{{'cn.errors.required'|translate}}</span>
+                        </div>
+                        <div class="error" ng-if="hadSameName">
+                            <span class="error">{{'cn.tags.checkInfo.sameName'|translate}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>{{'cn.dataSetManage.dataTitles.desc'|translate}}：</label>
+                    <div class="controls">
+                        <input class="form-controls" name="desc" ng-model="formData.desc" placeholder="{{'cn.dataSetManage.placeholder.dataSetDesc'|translate}}" ng-maxlength="255" required/>
+                        <div class="error" ng-messages="(editItemFormValid ||editItemForm.desc.$dirty) && editItemForm.desc.$error">
+                            <span class="error" ng-message="required">{{'cn.errors.required'|translate}}</span>                                
+                            <span class="error" ng-message="maxlength">{{'cn.errors.maxlength255'|translate}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>{{'cn.dataSetManage.dataTitles.volumesize'|translate}}：</label>
+                    <div class="controls">
+                        <input class="form-controls volumes-size" name="volumes" ng-model="formData.volumes" placeholder="{{'cn.dataSetManage.placeholder.volumesize'|translate}}" minmax-chk max="2048" min="1" required ng-disabled="true"/>
+                        <span class="size-num">GB</span>
+                        <div class="error" ng-messages="(editItemFormValid ||editItemForm.volumes.$dirty) && editItemForm.volumes.$error">
+                            <span class="error" ng-message="required">{{'cn.errors.required'|translate}}</span>
+                            <span class="error" ng-message="minmaxChk">{{'cn.errors.limit_2048'|translate}}</span>
+                        </div>
+                    </div>
+                </div>    
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>{{'cn.dataSetManage.dataTitles.permissions'|translate}}：</label>
+                    <div class="controls">
+                        <ui-select ng-model="formData.permissions" name="permissions" required ng-change="permissionsChange(formData.permissions)">
+                            <ui-select-match placeholder="{{'cn.dataSetManage.placeholder.permissions'|translate}}">
+                                {{$select.selected.name}}
+                            </ui-select-match>
+                            <ui-select-choices repeat="permissions in allowList">
+                                <div ng-bind-html="permissions.name | highlight: $select.search"></div>
+                            </ui-select-choices>
+                        </ui-select>
+                        <div class="error" ng-messages="(editItemFormValid ||editItemForm.permissions.$dirty) && editItemForm.permissions.$error">
+                            <span class="error" ng-message="required">{{'cn.errors.required'|translate}}</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- <div class="control-group school-group" ng-if="choiceSchool">
+                    <label class="control-label">
+                        <span class="red">*</span>{{'cn.dataSetManage.dataTitles.school'|translate}}：</label>
+                    <div class="controls">
+                        <ui-select ng-model="formData.school" name="school" required ng-change="schoolChange(formData.school)">
+                            <ui-select-match placeholder="{{'cn.dataSetManage.placeholder.school'|translate}}">
+                                {{$select.selected.name}}
+                            </ui-select-match>
+                            <ui-select-choices repeat="school in schoolList">
+                                <div ng-bind-html="school.name | highlight: $select.search"></div>
+                            </ui-select-choices>
+                        </ui-select>
+                        <div class="error" ng-messages="(editItemFormValid ||editItemForm.school.$dirty) && editItemForm.school.$error">
+                            <span class="error" ng-message="required">{{'cn.errors.required'|translate}}</span>
+                        </div>
+                    </div>
+                </div> -->
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-info" ng-click="confirmEdit(editItemForm)">{{'cn.action.ok'|translate}}</button>
+            <button type="button" class="btn btn-default" ng-click="$dismiss()">{{'cn.action.cancel'|translate}}</button>
+        </div>
+    </div>
+</script>

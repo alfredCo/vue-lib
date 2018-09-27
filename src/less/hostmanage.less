@@ -1,0 +1,85 @@
+@charset "utf-8";
+.host-manage-table{
+    tr{
+        td{
+            .icon-aw-modify{
+                color: #51a3ff;
+                margin-left: 8px;
+                cursor: pointer;
+            }
+            .label-key-input{
+                height: 30px;
+                width: 200px;
+                padding: 0 10px;
+                border: 1px solid #e5e5e5;
+                font-weight: normal;
+                background: #ffffff;
+                color: #666666;
+                border-radius: 2px;
+                box-shadow: none;
+                -webkit-transition: all 0.3s linear;
+                -moz-transition: all 0.3s linear;
+                -ms-transition: all 0.3s linear;
+                transition: all 0.3s linear;
+                &:focus{
+                    border-color: #51a3ff;
+                    box-shadow: none;
+                    outline: 0 none;
+                }
+            }
+            .label-key-select{
+                float: left;
+                height: 30px;
+                width: 200px;
+                padding: 0;
+                border: none;
+                font-weight: normal;
+                background: #ffffff;
+                color: #666666;
+                border-radius: 2px;
+                box-shadow: none;
+                -webkit-transition: all 0.3s linear;
+                -moz-transition: all 0.3s linear;
+                -ms-transition: all 0.3s linear;
+                transition: all 0.3s linear;
+                .ui-select-choices{
+                    .active{
+                        background: #fff;
+                        padding: 0;
+                        color: #fff;
+                        border-radius: 0;
+                    }
+                }
+                .ui-select-match{
+                    .btn{
+                        height: 30px;
+                    }
+                }
+            }
+            .icon-aw-yes{
+                font-size: 18px;
+                margin: 0 10px;
+                cursor: pointer;
+                color: #51a3ff;
+            }
+            .icon-aw-wrong{
+                font-size: 18px;
+                margin: 0 10px 0 0;
+                cursor: pointer;
+                &:hover{
+                    color: #51a3ff;
+                }
+            }
+        }
+    }
+}
+.host-label-show{
+    display: block;
+}
+.host-add-label{
+    width: 425px !important;
+}
+.table-form-error{
+    display: block;
+    color: #e74c3c;
+}

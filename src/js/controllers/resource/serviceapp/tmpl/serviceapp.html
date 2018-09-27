@@ -1,0 +1,69 @@
+<div class="page-inner">
+    <div class="table-action">
+        <div class="pull-right">
+            <div class="search-box">
+                <form name="searchForm" novalidate ng-keyup="applyGlobalSearch()">
+                    <button class="btn" type="submit" ng-disabled="searchForm.$invalid">
+                        <i class="icon-aw-search"></i>
+                    </button>
+                    <input type="text" class="form-control" autocomplete="off" maxlength="128" name="searchTerm" ng-model="globalSearchTerm"
+                        placeholder="{{'cn.hostmanage.placeholderSearch'|translate}}" />
+                </form>
+            </div>
+            <button class="btn btn-renovat" ng-click="refresh()">
+                <i class="icon-aw-refresh"></i>
+            </button>
+            <setting title-data="serviceappManageTitleData" site-title="serviceappName" table-data="serviceappManageListData" search-tearm="serviceappManageSearchTerm(obj)"></setting>
+        </div>
+    </div>
+    <div class="table-content">
+        <empty-tip empty-type="loadData"></empty-tip>
+        <table ng-table="tableParams" class="table" template-pagination="/tmpl/ngtablepagination.html">
+            <colgroup>
+                <col width="15%">
+                <col width="15%">
+                <col width="15%">
+                <col width="15%">
+                <col width="20%">
+                <col width="20%">
+            </colgroup>
+            <tr ng-repeat="item in $data">
+                <td data-title="dataTitles.serviceName" sortable="'name'" ng-if="serviceappManageTitleData[0].value"><a ng-href="#/resource/serviceapp?id={{item.id}}&namespace={{item.namespace}}&name={{item.name}}">{{item.name}}</a></td>
+                <td data-title="dataTitles.namespace" sortable="'namespace'" ng-if="serviceappManageTitleData[1].value"><span>{{item.namespace}}</span></td>
+                <td data-title="dataTitles.type" sortable="'type'" ng-if="serviceappManageTitleData[2].value"><span>{{item.type}}</span></td>
+                <td data-title="dataTitles.clusterIP" sortable="'clusterIP'" ng-if="serviceappManageTitleData[3].value"><span>{{item.clusterIP}}</span></td>
+                <td data-title="dataTitles.ports" sortable="'ports'" ng-if="serviceappManageTitleData[4].value"><span>{{item.ports}}</span></td>
+                <td data-title="dataTitles.creationTimestamp" sortable="'creationTimestamp'" ng-if="serviceappManageTitleData[5].value"><span>{{item.creationTimestamp}}</span></td>
+            </tr>
+        </table>
+        <div ng-controller="detailCtrl">
+            <pane class="detail-body" animation="animation">
+                <div class="detail-row">
+                    <div class="detail-title">
+                        <a class="an-close" ng-href="/#/resource/serviceapp">
+                            <i class="icon-aw-mail-reply"></i>
+                        </a>
+                        <span>应用{{serciveappDetailInfo.name}}详情</span>
+                    </div>
+                </div>
+                <div class="detail-info">
+                    <table class="table table-info column" ng-if="serciveappDetailInfo.selectorInfo.isExist">
+                        <tr>
+                            <td>选择器版本</td>
+                            <td>{{serciveappDetailInfo.selectorInfo.version}}</td>
+                            <td>k8s-app</td>
+                            <td>{{serciveappDetailInfo.selectorInfo["k8s-app"]}}</td>               
+                        </tr>
+                        <tr>
+                            <td>app</td>
+                            <td>{{serciveappDetailInfo.selectorInfo.app}}</td>
+                            <td></td>
+                            <td></td>               
+                        </tr>
+                    </table>
+                    <span ng-if="!serciveappDetailInfo.selectorInfo.isExist">暂无应用信息</span>
+                </div>
+            </pane>
+        </div>
+    </div>
+</div>

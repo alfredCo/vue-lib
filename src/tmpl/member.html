@@ -1,0 +1,46 @@
+<div class="modal-common">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true" ng-click="$dismiss()">×</button>
+      <h3 class="modal-title">{{'cn.projectManage.allocateUser'|translate}}</h3>
+    </div>
+    <div class="modal-body">
+      <form name="allocateUserForm">
+                <div class="control-group">
+                    <label class="control-label">{{"cn.projectManage.proAdmin"|translate}}：</label>
+                    <div class="controls">
+                        <!-- <span class="val">{{proFormData.name}}</span> -->
+                        <ui-select ng-model="manager.selected" ng-disabled="manageDisabled" name="promanager" ng-change="choiceManager(manager.selected)">
+                            <ui-select-match placeholder='{{"cn.projectManage.placeholder.proAdminList"|translate}}'>
+                                {{$select.selected.name}}                                    
+                            </ui-select-match>
+                            <ui-select-choices repeat="manager in managerList">
+                                <div ng-bind-html="manager.name | highlight: $select.search"></div>                                    
+                            </ui-select-choices>
+                        </ui-select>
+                        <div ng-messages="allocateUserForm.promanager.$dirty && allocateUserForm.promanager.$error">
+                            <span class="error" ng-message="required">{{"cn.message.required"|translate}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">{{"cn.projectManage.proUser"|translate}}：</label>
+                    <div class="controls">
+                        <ui-select multiple close-on-select="false" ng-model="allowPro.userNameList" name="choiceUser" theme="bootstrap" ng-change="choiceUser(allowProUser.NameList)">
+                            <ui-select-match placeholder='{{"cn.projectManage.placeholder.proUserList"|translate}}'>{{$item.name}}
+                            </ui-select-match>
+                            <ui-select-choices repeat="user in userList">
+                                <div ng-bind-html="user.name | highlight: $select.search"></div>
+                            </ui-select-choices>
+                        </ui-select>
+                        <div ng-messages="allocateUserForm.choiceUser.$dirty && allocateUserForm.choiceUser.$error">
+                            <span class="error" ng-message="required">{{"cn.message.required"|translate}}</span>
+                        </div>
+                    </div>
+                </div>
+            </form>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-info" type="button" ng-click="allocateUserComfirm(allocateUserForm)">{{"cn.action.ok"|translate}}</button>
+      <button class="btn btn-default" type="button" ng-click="$dismiss()">{{"cn.action.cancel"|translate}}</button>
+    </div>  
+  </div>
