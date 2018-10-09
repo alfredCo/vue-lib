@@ -2,7 +2,7 @@
 
 let webpack = require("webpack");
 let MiniCssExtractPlugin = require("mini-css-extract-plugin");
-
+let VueLoaderPlugin = require('vue-loader/lib/plugin')
 
 module.exports = {
 	context: __dirname,
@@ -23,6 +23,13 @@ module.exports = {
             {
               test: /\.less$/, 
               use:[MiniCssExtractPlugin.loader,"css-loader","less-loader"]
+            },
+            {
+                test: /\.vue$/,
+                loader: 'vue-loader'
+                // use:{
+                //     loader:'vue-loader'
+                // }
             },
             {
                 test:/\.js$/,
@@ -55,7 +62,8 @@ module.exports = {
         }
     },
 	plugins: [
-		new MiniCssExtractPlugin({filename:"./css/[name].css"})
+        new MiniCssExtractPlugin({filename:"./css/[name].css"}),
+        new VueLoaderPlugin()
 	],
 	devServer: {
 		port: 36666,
