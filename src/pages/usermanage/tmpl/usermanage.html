@@ -1,0 +1,538 @@
+<div class="page-inner userManage-page">
+    <div class="table-action">
+        <button type="button" data-toggle="modal" ng-click="create()" class="btn btn-primary">
+            <i class="icon-aw-add-to2"></i>{{"cn.usermanage.createUser"|translate}}</button>
+        <button type="button" data-toggle="modal" ng-disabled="!canEdit" ng-click="edit()" class="btn btn-info">
+            <i class="icon-aw-modify"></i>{{"cn.action.edit"|translate}}</button>
+        <button type="button" data-toggle="modal" ng-disabled="!canEditPsw" ng-click="editPsw()" class="btn btn-info">
+            <i class="icon-aw-modify"></i>{{"cn.action.editPass"|translate}}</button>
+        <button type="button" data-toggle="modal" ng-disabled="!canStart" ng-click="activate()" class="btn btn-info">
+            <i class="icon-aw_yes1"></i>{{"cn.usermanage.activate"|translate}}</button>
+        <button type="button" data-toggle="modal" ng-disabled="!forbidden" ng-click="forbiddenFnc()" class="btn btn-warning">
+            <i class="icon-aw-jy"></i>{{"cn.action.forbidden"|translate}}</button>
+        <button type="button" data-toggle="modal" ng-disabled="!canDel" ng-click="deleteUser()" class="btn btn-warning">
+            <i class="icon-aw-delete"></i>{{"cn.action.del"|translate}}</button>
+        <div class="pull-right">
+            <div class="status-list">
+                <ui-select ng-model="option.dataStatusChose" ng-change="choiceDataStatus(option.dataStatusChose)" ng-disabled ="!tableData">
+                    <ui-select-match placeholder='{{"cn.hostmanage.statusListplaceholderSearch"|translate}}'>
+                        {{$select.selected.name}}
+                    </ui-select-match>
+                    <ui-select-choices repeat="status in dataStatusList">
+                        <div ng-bind-html="status.name | highlight: $select.search"></div>
+                    </ui-select-choices>
+                </ui-select>
+            </div>
+            <div class="search-box">
+                <form name="searchForm" novalidate ng-keyup="applyGlobalSearch()">
+                    <button class="btn" type="submit" ng-disabled="searchForm.$invalid">
+                        <i class="icon-aw-search"></i>
+                    </button>
+                        <input type="text" class="form-control" autocomplete="off" maxlength="128" name="searchTerm" ng-model="globalSearchTerm"
+                        placeholder="{{'cn.hostmanage.placeholderSearch'|translate}}" />
+                </form>
+            </div>
+            <button class="btn btn-renovat" ng-click="refresh()">
+                <i class="icon-aw-refresh"></i>
+            </button>
+            <setting title-data="titleData" site-title="titleName" table-data="tableData" search-tearm="userMangeSearchTearm(obj)"></setting>
+        </div>
+    </div>
+    <div class="table-content">
+        <empty-tip empty-type="loadData"></empty-tip>
+        <table ng-table="tableParams" class="table" template-pagination="/tmpl/ngtablepagination.html" show-filter="false" template-pagination="/tmpl/ngtablepagination.html">
+            <colgroup>
+                <col width="4%">
+                <col width="16%">
+                <col width="16%">
+                <col width="16%">
+                <col width="16%">
+                <col width="16%">
+                <col width="16%">
+            </colgroup>
+            <tr ng-repeat="item in $data">
+                <td header="'headerCheckbox.html'">
+                    <label class="checkbox">
+                        <input type="checkbox" ng-model="checkboxes.items[item.id]" />
+                        <i class="iconfont"></i>
+                    </label>
+                </td>
+                <td data-title="'cn.usermanage.loginName'|translate" sortable="'name'" ng-if="titleData[0].value">
+                    {{item.name}}
+                </td>
+                <td data-title="'cn.usermanage.role'|translate" sortable="'role_'" ng-if="titleData[1].value">
+                    {{item.role_}}
+                </td>
+                <td data-title="'cn.usermanage.email'|translate" sortable="'email'" ng-if="titleData[2].value">
+                    {{item.email}}                
+                </td>
+                <td data-title="'cn.usermanage.phone'|translate" sortable="'telNum'" ng-if="titleData[3].value">
+                    {{item.telNum}}              
+                </td>
+                <td data-title="'cn.usermanage.status'|translate" sortable="'enabled_'" ng-if="titleData[4].value">
+                    <span ng-class="{
+                'bg-green':(item.enabled==true),
+                'bg-orange':(item.enabled==false)
+                }">{{item.enabled_}}</span>
+                </td>
+                <td data-title="'cn.usermanage.createTime'|translate" sortable="'createTime_'" ng-if="titleData[5].value">
+                    {{item.createTime_}}
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div ng-controller="detailCtrl">
+        <pane class="detail-body" animation="animation">
+            <div class="tab-content">
+            <div class="detail-row">
+                <div class="detail-title">
+                    <a class="an-close" ng-href="/#/user/usermanage">
+                        <i class="icon-aw-mail-reply"></i>
+                    </a>
+                    <span>{{detailData.userName}}{{"cn.common.detail"|translate}}</span>,                                    
+                </div>
+                <div class="detail-info">
+                    <h4>{{"cn.usermanage.userInfo"|translate}}</h4>
+                    <table class="table table-info column">
+                        <tr>
+                            <td>{{'cn.usermanage.email'|translate}}</td>
+                            <td>{{detailData.email}}</td>
+                            <td>{{'cn.usermanage.phone'|translate}}</td>
+                            <td>{{detailData.phone}}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            </div>
+        </pane>
+    </div>
+</div>
+<script type="text/ng-template" id="headerCheckbox.html">
+    <label class="checkbox">
+        <input type="checkbox" ng-model="checkboxes.checked" class="select-all" value="" />
+        <i class="iconfont"></i>
+    </label>
+</script>
+  <!-- 修改密码 -->
+<script type="text/ng-template" id="editPsw.html">
+    <div class="modal-common">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="$dismiss()">×</button>
+            <h3 class="modal-title">{{"cn.action.editPass"|translate}}</h3>
+        </div>
+        <div class="modal-body">
+            <form name="userForm">
+            
+                <div class="control-group">
+                    <label class="control-label">
+                        <span>{{'cn.usermanage.userName'|translate}}：</span>
+                    </label>
+                    <div class="controls">
+                        <span class="val">{{formData.name}}</span>
+                    </div>
+                </div>
+                <!-- <div class="control-group">
+                    <label class="control-label">
+                    <span class="red">*</span>{{"cn.usermanage.name"|translate}}：</label>
+                    <div class="controls">
+                    <input type="text" class="form-controls" name="name" ng-model="formData.name" ng-disabled="true" />
+                    </div>
+                </div> -->  
+                <div class="control-group">
+                    <label class="control-label">
+                    <span class="red">*</span>{{"cn.usermanage.password"|translate}}：</label>
+                    <div class="controls">
+                    <input type="password" class="form-controls" name="admin_pass" ng-model="formData.admin_pass" id="pw2" ng-pattern="/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@._:,\/\-\^\%])[0-9a-zA-Z!@._:,\/\-\^\%]{8,16}$/"
+                        placeholder="{{'cn.usermanage.placeholder.psw'|translate}}" required />
+                    <div ng-messages="(submitValid ||userForm.admin_pass.$dirty) && userForm.admin_pass.$error">
+                        <span class="error" ng-message="required">{{'cn.usermanage.checkInfo.required'|translate}}</span>
+                        <span class="error" ng-message="pwCheck">{{'cn.usermanage.checkInfo.notSamePasswd'|translate}}</span>
+                        <span class="error" ng-message="pattern">{{'cn.usermanage.checkInfo.special_8_16'|translate}}</span>
+                    </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                    <span class="red">*</span>{{"cn.usermanage.checkPsw"|translate}}：</label>
+                    <div class="controls">
+                    <input type="password" class="form-controls" name="admin_comfirmpass" ng-model="admin_comfirmpass" pw-check="pw2" ng-pattern="/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@._:,\/\-\^\%])[0-9a-zA-Z!@._:,\/\-\^\%]{8,16}$/"
+                        placeholder="{{'cn.usermanage.placeholder.psw'|translate}}" required />
+                    <div ng-messages=" (submitValid ||userForm.admin_comfirmpass.$dirty) && userForm.admin_comfirmpass.$error">
+                        <span class="error" ng-message="required">{{'cn.usermanage.checkInfo.required'|translate}}</span>
+                        <span class="error" ng-message="pwCheck">{{'cn.usermanage.checkInfo.notSamePasswd'|translate}}</span>
+                        <span class="error" ng-message="pattern">{{'cn.usermanage.checkInfo.special_8_16'|translate}}</span>
+                    </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-info" type="button" ng-disabled="cant_click()" ng-click="confirm(userForm)">{{'cn.action.ok'|translate}}</button>
+            <button class="btn btn-default" type="button" ng-click="$dismiss()">{{'cn.action.cancel'|translate}}</button>
+        </div>
+    </div>
+</script>
+<script type="text/ng-template" id="createUser.html">
+    <div class="modal-common lg-modal">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="$dismiss()">×</button>
+            <h3 class="modal-title">{{'cn.usermanage.createUser'|translate}}</h3>
+            <!-- <ul class="steps-sytle-ver steps-sytle-ver-two clearfix">
+            <li class="clearfix step-start" ng-class="{'active':inStepOneBar<inStep}">
+                <div class="inner">
+                <span>{{"cn.usermanage.userInfo"|translate}}</span>
+                <i>1</i>
+                </div>
+            </li>
+    
+            <li class="clearfix step-end" ng-class="{'active':inStepTwoBar<inStep}">
+                <div class="inner">
+                <span>{{"cn.usermanage.resQuota"|translate}}</span>
+                <i>2</i>
+                </div>
+            </li>
+            </ul> -->
+        </div>
+        <div class="modal-body ">
+            <div class="control-group  one-group">
+            <form name="infoForm">
+                <div class="control-group">
+                    <label class="control-label"><span class="red">*</span>{{"cn.usermanage.userName"|translate}}：</label>
+                    <div class="controls">
+                        <input type="text" class="form-controls" name="userName" ng-model="userFormData.name" placeholder='{{
+                        "cn.usermanage.placeholder.userName"|translate}}' ng-pattern="/^[a-z][a-z0-9-]*[a-z]$/" ng-maxlength="32"
+                        ng-minlength="6" ng-change="changeName()" required/>
+                        <div class="error" ng-messages="(submitValid_ ||infoForm.userName.$dirty) && infoForm.userName.$error">
+                            <span class="error" ng-message="required">{{'cn.usermanage.checkInfo.required'|translate}}</span>
+                            <span class="error" ng-message="minlength">{{'cn.errors.minlength6'|translate}}</span>
+                            <span class="error" ng-message="pattern">{{'cn.usermanage.checkInfo.name'|translate}}</span>
+                            <span class="error" ng-message="maxlength">{{'cn.errors.maxlength32'|translate}}</span>
+                        </div>
+                        <div class="error" ng-if="hadSameName">
+                            <span class="error">{{'cn.usermanage.checkInfo.sameName'|translate}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>{{"cn.usermanage.project"|translate}}：</label>
+                    <div class="controls">
+                        <ui-select ng-model="userFormData.projectChoice.projectID" name="projectTitle" ng-change="choiceProject(userFormData.projectChoice.projectID)" required>
+                            <ui-select-match placeholder='{{"cn.usermanage.placeholder.project"|translate}}'>
+                                {{$select.selected.name}}
+                            </ui-select-match>
+                            <ui-select-choices repeat="project in projectList">
+                                <div ng-bind-html="project.name | highlight: $select.search"></div>
+                            </ui-select-choices>
+                        </ui-select>
+                        <div class="error" ng-messages="(submitValid_ ||infoForm.projectTitle.$dirty) && infoForm.projectTitle.$error">
+                            <span class="error" ng-message="required">{{'cn.usermanage.checkInfo.required'|translate}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>{{"cn.usermanage.role"|translate}}：</label>
+                    <div class="controls">
+                        <ui-select ng-model="userFormData.roleChose.roleId" name="roleTitle" ng-change="choiceRole(userFormData.roleChose.roleId)" required>
+                            <ui-select-match placeholder='{{"cn.usermanage.placeholder.role"|translate}}'>
+                                {{$select.selected.name}}
+                            </ui-select-match>
+                            <ui-select-choices repeat="role in roleList">
+                                <div ng-bind-html="role.name | highlight: $select.search"></div>
+                            </ui-select-choices>
+                        </ui-select>
+                        <div class="error" ng-messages="(submitValid_ ||infoForm.roleTitle.$dirty) && infoForm.roleTitle.$error">
+                            <span class="error" ng-message="required">{{'cn.usermanage.checkInfo.required'|translate}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>{{"cn.usermanage.password"|translate}}：</label>
+                    <div class="controls">
+                        <input type="password" class="form-controls" name="password" ng-model="userFormData.password" id="user_pass" ng-init="userForm.password=''"
+                        placeholder='{{ "cn.usermanage.placeholder.enter"|translate}}' ng-pattern="/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@._:,/\-\^\%])[0-9a-zA-Z!@._:,/\-\^\%]{8,16}$/"
+                        required/>
+                        <div class="error" ng-messages="(submitValid_ ||infoForm.password.$dirty) && infoForm.password.$error">
+                            <span class="error" ng-message="required">{{'cn.usermanage.checkInfo.required'|translate}}</span>
+                            <span class="error" ng-message="pwCheck">{{'cn.usermanage.checkInfo.notSamePasswd'|translate}}</span>
+                            <span class="error" ng-message="pattern">{{'cn.usermanage.checkInfo.special_8_16'|translate}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>{{"cn.usermanage.checkPsw"|translate}}：</label>
+                    <div class="controls">
+                        <input type="password" class="form-controls" name="confirmPassWord" ng-model="userFormData.cfmPassword" placeholder='{{
+                        "cn.usermanage.placeholder.enter"|translate}}' ng-pattern="/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@._:,/\-\^\%])[0-9a-zA-Z!@._:,/\-\^\%]{8,16}$/"
+                        pw-check="user_pass" required />
+                        <div class="error" ng-messages="(submitValid_ ||infoForm.confirmPassWord.$dirty) && infoForm.confirmPassWord.$error">
+                            <span class="error" ng-message="required">{{'cn.usermanage.checkInfo.required'|translate}}</span>
+                            <span class="error" ng-message="pwCheck">{{'cn.usermanage.checkInfo.notSamePasswd'|translate}}</span>
+                            <span class="error" ng-message="pattern">{{'cn.usermanage.checkInfo.special_8_16'|translate}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">{{"cn.usermanage.email"|translate}}：</label>
+                    <div class="controls">
+                        <input class="form-controls" name="email" ng-model="userFormData.email" placeholder='{{ "cn.usermanage.placeholder.enter"|translate}}'
+                        ng-pattern="/^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/" ng-maxlength="50" />
+                        <div class="error" ng-messages="(submitValid_ ||infoForm.email.$dirty) && infoForm.email.$error">
+                            <span class="error" ng-message="pattern">{{'cn.errors.email'|translate}}</span>
+                            <span class="error" ng-message="maxlength">{{'cn.errors.emailmaxlength'|translate}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>{{"cn.usermanage.phone"|translate}}：</label>
+                    <div class="controls">
+                        <input type="text" class="form-controls" name="phone" ng-model="userFormData.phone" placeholder='{{
+                        "cn.usermanage.placeholder.enter"|translate}}' ng-pattern="/(^(13\d|15[^4,\D]|17[13678]|18\d)\d{8}|170[^346,\D]\d{7})$/"
+                        required />
+                        <div class="error" ng-messages="(submitValid_ ||infoForm.phone.$dirty) && infoForm.phone.$error">
+                            <span class="error" ng-message="required">{{'cn.usermanage.checkInfo.required'|translate}}</span>
+                            <span class="error" ng-message="pattern">{{'cn.errors.phone'|translate}}</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>{{"cn.usermanage.activate"|translate}}：</label>
+                    <div class="controls">
+                        <div class="checkbox switch-btn">
+                        <label>
+                            <input type="checkbox" class="form-controls" ng-model="userFormData.userActive">
+                            <i class="iconfont"></i>
+                        </label>
+                        </div>
+                    </div>
+                </div> -->
+            </form>
+            </div>
+            <!-- <div class="control-group one-group" ng-show="inStep=='2'">
+            <form name="quotaForm" novalidate>
+                <div class="control-group">
+                <label class="control-label">
+                    <span class="red">*</span>{{"cn.usermanage.cpu"|translate}}：</label>
+                <div class="controls">
+                    <input type="text"  class="form-controls" id="cpu" name="cpu" ng-model="userFormData.cpu" ng-maxlength="16" minmax="cpu" min="0" max="totalRes.cpu" placeholder='{{
+                    "cn.usermanage.placeholder.enter"|translate}}' ng-pattern="/^([1-9]\d*|[0]{1,1})$/" required />
+                    <div class="error" ng-messages="(submitValid_ ||quotaForm.cpu.$dirty) && quotaForm.cpu.$error">
+                    <span class="error" ng-message="required">{{'cn.usermanage.checkInfo.required'|translate}}</span>
+                    <span class="error" ng-message="pattern">{{'cn.errors.integerAndZero'|translate}}</span>
+                    <span class="error" ng-message="maxlength">{{'cn.errors.maxlength16'|translate}}</span>
+                    <span class="error" ng-message="minmax">{{'cn.errors.toInput'|translate}}0~{{totalRes.cpu}}</span>
+                    </div>
+                </div>
+                </div>
+                <div class="control-group">
+                <label class="control-label">
+                    <span class="red">*</span>{{"cn.usermanage.memory"|translate}}：</label>
+                <div class="controls">
+                    <input type="text" class="form-controls" id="memory" name="memory" ng-model="userFormData.memory" ng-maxlength="16" minmax="memory" min="0" max="totalRes.memory" placeholder='{{
+                    "cn.usermanage.placeholder.enter"|translate}}' ng-pattern="/^([1-9]\d*|[0]{1,1})$/" required />
+                    <div class="error" ng-messages="(submitValid_ ||quotaForm.memory.$dirty) && quotaForm.memory.$error">
+                    <span class="error" ng-message="required">{{'cn.usermanage.checkInfo.required'|translate}}</span>
+                    <span class="error" ng-message="pattern">{{'cn.errors.integerAndZero'|translate}}</span>
+                    <span class="error" ng-message="maxlength">{{'cn.errors.maxlength16'|translate}}</span>
+                    <span class="error" ng-message="minmax">{{'cn.errors.toInput'|translate}}0~{{totalRes.memory}}</span>
+                    </div>
+                </div>
+                </div>
+                <div class="control-group">
+                <label class="control-label">
+                    <span class="red">*</span>{{"cn.usermanage.storage"|translate}}：</label>
+                <div class="controls">
+                    <input type="text" class="form-controls" id="storage" name="storage" ng-model="userFormData.storage" ng-maxlength="16" minmax="storage" min="0" max="totalRes.storage" placeholder='{{
+                    "cn.usermanage.placeholder.enter"|translate}}' ng-pattern="/^([1-9]\d*|[0]{1,1})$/" required />
+                    <div class="error" ng-messages="(submitValid_ ||quotaForm.storage.$dirty) && quotaForm.storage.$error">
+                    <span class="error" ng-message="required">{{'cn.usermanage.checkInfo.required'|translate}}</span>
+                    <span class="error" ng-message="pattern">{{'cn.errors.integerAndZero'|translate}}</span>
+                    <span class="error" ng-message="maxlength">{{'cn.errors.maxlength16'|translate}}</span>
+                    <span class="error" ng-message="minmax">{{'cn.errors.toInput'|translate}}0~{{totalRes.storage}}</span>
+                    </div>
+                </div>
+                </div>
+                <div class="control-group">
+                <label class="control-label">
+                    <span class="red">*</span>{{"cn.usermanage.gpu"|translate}}：</label>
+                <div class="controls">
+                    <input type="text" class="form-controls" id="gpu" name="gpu" ng-model="userFormData.gpu" ng-maxlength="16" minmax="gpu" min="0" max="totalRes.gpu" placeholder='{{
+                    "cn.usermanage.placeholder.enter"|translate}}' ng-pattern="/^([1-9]\d*|[0]{1,1})$/" required />
+                    <div class="error" ng-messages="(submitValid_ ||quotaForm.gpu.$dirty) && quotaForm.gpu.$error">
+                    <span class="error" ng-message="required">{{'cn.usermanage.checkInfo.required'|translate}}</span>
+                    <span class="error" ng-message="pattern">{{'cn.errors.integerAndZero'|translate}}</span>
+                    <span class="error" ng-message="maxlength">{{'cn.errors.maxlength16'|translate}}</span>
+                    <span class="error" ng-message="minmax">{{'cn.errors.toInput'|translate}}0~{{totalRes.gpu}}</span>
+                    </div>
+                </div>
+                </div>
+            </form>
+            </div> -->
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-info" type="button" ng-click="userConfirm(infoForm)">
+                {{'cn.action.create'|translate}}
+            </button>
+            <button class="btn btn-default" type="button" ng-click="$dismiss()">
+                {{'cn.action.cancel'|translate}}
+            </button>
+                <!-- <div ng-show="inStep=='2'">
+                <div>
+                    <button class="btn btn-default" type="button" ng-click="stepToOne(1)">
+                    {{'cn.action.lastStep'|translate}}
+                    </button>
+                    <button class="btn btn-info" type="button" ng-disabled="canCreate" ng-click="userConfirm(quotaForm)">
+                    {{'cn.action.create'|translate}}
+                    </button>
+                    <button class="btn btn-default" type="button" ng-click="$dismiss()">
+                    {{'cn.action.cancel'|translate}}
+                    </button>
+                </div>
+                </div> -->
+        </div>
+</script>
+<script type="text/ng-template" id="editUser.html">
+    <div class="modal-common editUser-modal">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="$dismiss()">×</button>
+            <h3 class="modal-title">{{"cn.action.edit"|translate}}</h3>
+        </div>
+      <!-- <uib-tabset active=tabActive justified="true"> -->
+        <!-- <uib-tab index="1" heading="{{'cn.usermanage.userInfo'|translate}}"> -->
+        <div class="modal-body">
+            <form name="userInfoForm" novalidate>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span>{{'cn.usermanage.userName'|translate}}：</span> 
+                    </label>
+                    <div class="controls">
+                        <span class="val">{{userFormData.name}}</span>
+                        <!-- <input type="text" class="form-controls" name="name" ng-model="userFormData.userName" ng-disabled="true" /> -->
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">{{"cn.usermanage.email"|translate}}：</label>
+                    <div class="controls">
+                        <input class="form-controls" name="email" ng-model="userFormData.email" placeholder='{{ "cn.usermanage.placeholder.enter"|translate}}'
+                            ng-pattern="/^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/" ng-maxlength="50" />
+                        <div class="error" ng-messages="(submitValid ||userInfoForm.email.$dirty) && userInfoForm.email.$error">
+                            <span class="error" ng-message="pattern">{{'cn.errors.email'|translate}}</span>
+                            <span class="error" ng-message="maxlength">{{'cn.errors.emailmaxlength'|translate}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>{{"cn.usermanage.phone"|translate}}：</label>
+                    <div class="controls">
+                        <input type="text" class="form-controls" name="phone" ng-model="userFormData.telNum" placeholder='{{
+                            "cn.usermanage.placeholder.enter"|translate}}' ng-pattern="/(^(13\d|15[^4,\D]|17[13678]|18\d)\d{8}|170[^346,\D]\d{7})$/"
+                        required />
+                        <div class="error" ng-messages="(submitValid ||userInfoForm.phone.$dirty) && userInfoForm.phone.$error">
+                            <span class="error" ng-message="required">{{'cn.usermanage.checkInfo.required'|translate}}</span>
+                            <span class="error" ng-message="pattern">{{'cn.errors.phone'|translate}}</span>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-info" type="button" ng-click="confirm(userInfoForm)">{{'cn.action.ok'|translate}}</button>
+            <button class="btn btn-default" type="button" ng-click="$dismiss()">{{'cn.action.cancel'|translate}}</button>
+        </div>
+        <!-- </uib-tab> -->
+        <!-- <uib-tab index="2" heading="{{'cn.usermanage.resDeploy'|translate}}">
+          <div class="modal-body">
+            <div class="resinfo-tips">
+              <span>
+                {{'cn.usermanage.showResInfo'|translate}}：
+              </span>
+              <button type="button" data-toggle="modal" ng-click="openEditQuotaModal()" class="btn btn-info">{{'cn.usermanage.resManage'|translate}}</button>
+            </div>
+            <div class="user-bar-group bar-group">
+              <div quota-bar bardata="quotaData.cpu_data"></div>
+              <div quota-bar bardata="quotaData.memory_data"></div>
+              <div quota-bar bardata="quotaData.storage_data"></div>
+              <div quota-bar bardata="quotaData.gpu_data"></div>
+            </div>
+          </div>
+        </uib-tab> -->
+      </uib-tabset>
+    </div>
+</script>
+<!-- <script type="text/ng-template" id="editRes.html">
+    <div class="modal-common">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="$dismiss()">×</button>
+            <h3 class="modal-title">{{'cn.usermanage.resManage'|translate}}</h3>
+        </div>
+        <div class="modal-body">
+            <form name="resForm" novalidate>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>{{"cn.usermanage.cpu"|translate}}：</label>
+                    <div class="controls">
+                        <input type="text" class="form-controls" name="cpu" id="cpu" ng-model="resFormData.cpu_hard"  minmax="cpu" min="0" max="totalRes.cpu" ng-maxlength="16"  placeholder='{{
+                                "cn.usermanage.placeholder.enter"|translate}}' ng-pattern="/^([1-9]\d*|[0]{1,1})$/" required />
+                        <div class="error" ng-messages="(submitValid_ ||resForm.cpu.$dirty) && resForm.cpu.$error">
+                            <span class="error" ng-message="required">{{'cn.usermanage.checkInfo.required'|translate}}</span>
+                            <span class="error" ng-message="pattern">{{'cn.errors.integerAndZero'|translate}}</span>
+                            <span class="error" ng-message="maxlength">{{'cn.errors.maxlength16'|translate}}</span>
+                            <span class="error" ng-message="minmax">{{'cn.errors.toInput'|translate}}0~{{totalRes.cpu}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>{{"cn.usermanage.memory"|translate}}：</label>
+                    <div class="controls">
+                        <input type="text" class="form-controls" name="memory" ng-model="resFormData.memory_hard" id="memory"  minmax="memory" min="0" max="totalRes.memory" ng-maxlength="16" placeholder='{{
+                                "cn.usermanage.placeholder.enter"|translate}}'ng-pattern="/^([1-9]\d*|[0]{1,1})$/" required />
+                        <div class="error" ng-messages="(submitValid_ ||resForm.memory.$dirty) && resForm.memory.$error">
+                            <span class="error" ng-message="required">{{'cn.usermanage.checkInfo.required'|translate}}</span>
+                            <span class="error" ng-message="pattern">{{'cn.errors.integerAndZero'|translate}}</span>
+                            <span class="error" ng-message="maxlength">{{'cn.errors.maxlength16'|translate}}</span>
+                            <span class="error" ng-message="minmax">{{'cn.errors.toInput'|translate}}0~{{totalRes.memory}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">
+                        <span class="red">*</span>{{"cn.usermanage.storage"|translate}}：</label>
+                    <div class="controls">
+                        <input type="text" class="form-controls" name="storage" ng-model="resFormData.disk_hard" ng-maxlength="16" id="storage"  minmax="storage" min="0" max="totalRes.storage" placeholder='{{
+                                "cn.usermanage.placeholder.enter"|translate}}' ng-pattern="/^([1-9]\d*|[0]{1,1})$/" required />
+                        <div class="error" ng-messages="(submitValid_ ||resForm.storage.$dirty) && resForm.storage.$error">
+                            <span class="error" ng-message="required">{{'cn.usermanage.checkInfo.required'|translate}}</span>
+                            <span class="error" ng-message="pattern">{{'cn.errors.integerAndZero'|translate}}</span>
+                            <span class="error" ng-message="maxlength">{{'cn.errors.maxlength16'|translate}}</span>
+                            <span class="error" ng-message="minmax">{{'cn.errors.toInput'|translate}}0~{{totalRes.storage}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label"><span class="red">*</span>{{"cn.usermanage.gpu"|translate}}：</label>
+                    <div class="controls">
+                        <input type="text" class="form-controls" name="gpu" ng-model="resFormData.gpu_hard" id="gpu" minmax="gpu" min="0" max="totalRes.gpu" ng-maxlength="16" placeholder='{{
+                                "cn.usermanage.placeholder.enter"|translate}}' ng-pattern="/^([1-9]\d*|[0]{1,1})$/" required />
+                        <div class="error" ng-messages="(submitValid_ ||resForm.gpu.$dirty) && resForm.gpu.$error">
+                            <span class="error" ng-message="required">{{'cn.usermanage.checkInfo.required'|translate}}</span>
+                            <span class="error" ng-message="pattern">{{'cn.errors.integerAndZero'|translate}}</span>
+                            <span class="error" ng-message="maxlength">{{'cn.errors.maxlength16'|translate}}</span>
+                            <span class="error" ng-message="minmax">{{'cn.errors.toInput'|translate}}0~{{totalRes.gpu}}</span>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-info" type="button" ng-disabled="cant_click()" ng-click="confirm(resForm)">{{'cn.action.ok'|translate}}</button>
+            <button class="btn btn-default" type="button" ng-click="cancel()">{{'cn.action.cancel'|translate}}</button>
+        </div>
+    </div>
+</script> -->

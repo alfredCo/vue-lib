@@ -8,7 +8,7 @@ module.exports = {
 	context: __dirname,
 	entry: {
 		"index":[
-			"./src/js/app.js",
+			"./src/app.js",
 			"./src/less/index.less"
 		]
 	},
